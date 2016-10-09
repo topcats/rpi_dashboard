@@ -5,7 +5,6 @@ import json
 from string import capitalize
 from PIL import Image, ImageTk
 import time
-import io
 import os
 try:
 	# Python2
@@ -41,10 +40,8 @@ def tick(tick_time1=''):
 				weathercanvas.itemconfig(weatherlabel, fill='white')
 
 			fnGetWeather()
-			time.sleep(2)
 
 			infodlna.config(text=fnGetDlnaText())
-			time.sleep(2)
 
 			blnflag = False
 		elif min2[1]!='30' and min2[1]!='00':
@@ -58,25 +55,9 @@ def tick(tick_time1=''):
 
 
 def fnGetWeatherStatus():
-	data_timediff = 24*3600
 	try:
-		data_timediff = int(time.time()) - int(os.path.getmtime('data_weather.txt'))
-	except:
-		data_timediff = 25*3600
-	try:
-		if (data_timediff >= (1700)):
-			#http://openweathermap.org/current#parameter
-			#Ashburton:2656977
-			#Downham Market:2651030
-			url_to_call = 'http://api.openweathermap.org/data/2.5/weather?id=2656977&appid=08b5e93e4e18f3bb67193ab5fa179abc&units=metric'
-			response = urllib2.urlopen(url_to_call)
-			json_obj = json.load(response)
-			#os.rename('data_weather.txt', 'data_weatherold.txt')
-			with open('data_weather.txt','w') as fp:
-				json.dump(json_obj, fp)
-		else:
-			with open('data_weather.txt') as fp:
-				json_obj = json.load(fp)
+		with open('data_weather.txt') as fp:
+			json_obj = json.load(fp)
 
 		current_desc = capitalize(json_obj['weather'][0]['description'])
 		#current_temp = kelvinToCelsius(json_obj['main']['temp'])
@@ -97,7 +78,6 @@ def fnGetWeather():
 	#local_encoding = 'cp850'
 	#deg = u'\xb0'.encode(local_encoding)
 	#sub= "°C.".decode('utf8').encode(local_encoding)
-	weatherimage_url = 'http://openweathermap.org/img/w/'+str(mylist[2]+'.png')
 	#response = urllib2.urlopen(weatherimage_url)
 	#weatherimage_file = io.BytesIO(response.read())
 	#weatherimage = Image.open(weatherimage_file)
@@ -108,12 +88,9 @@ def fnGetWeather():
 	#imgcanvas = Canvas(weatherfr, bg="green", width=200, height=200)
 	#imgcanvas.pack(side='left')
 
-	urllib.urlretrieve(weatherimage_url,'/home/pi/dashdisplay/current.png')
-	time.sleep(2)
-
 	#photoimg = tk.PhotoImage(file="default.png")
 	#imgcanvas.create_image(150, 150, image=photoimg)
-	weatherimgsrc = Image.open("current.png")
+	weatherimgsrc = Image.open("icon_weather.png")
 	weatherimgphoto = ImageTk.PhotoImage(weatherimgsrc)
 	#weathercanvas.delete(weathernowimage)
 	#weathernowimage = weathercanvas.create_image(30, 30, image=weatherimgphoto)
@@ -123,34 +100,11 @@ def fnGetWeather():
 
 
 def fnGetDlnaStatus():
-	data_timediff = 24*3600
 	try:
-		data_timediff = int(time.time()) - int(os.path.getmtime('data_dlna.txt'))
-	except:
-		data_timediff = 25*3600
-	try:
-		if (data_timediff >= (12*3600)):
-			url_to_call='http://localhost:8200/'
-			response = urllib2.urlopen(url_to_call)
-			response_data = response.read()
-			count_video = response_data.index("Video")
-			count_videoe = response_data.index('</tr>',count_video)
-			value_video = response_data[count_video:count_videoe]
-			value_video = value_video.replace('Video files</td><td>','')
-			value_video = value_video.replace('</td>','')
-			count_audio = response_data.index("Audio")
-			count_audioe = response_data.index('</tr>',count_audio)
-			value_audio = response_data[count_audio:count_audioe]
-			value_audio = value_audio.replace('Audio files</td><td>','')
-			value_audio = value_audio.replace('</td>','')
-			data = {'audio':value_audio, 'video':value_video}
-			with open('data_dlna.txt','w') as fp:
-				json.dump(data, fp)
-		else:
-			with open('data_dlna.txt') as fp:
-				data = json.load(fp)
-				value_audio = data['audio']
-				value_video = data['video']
+		with open('data_dlna.txt') as fp:
+			data = json.load(fp)
+			value_audio = data['audio']
+			value_video = data['video']
 
 		return value_video,value_audio
 
@@ -163,14 +117,18 @@ def fnGetDlnaText():
 	mydlna = fnGetDlnaStatus()
 	return 'DLNA Status: '+"\n"+ 'VID:'+mydlna[0]+'  MP3:'+mydlna[1]
 
+
 def fnGetTristanHome():
-	response = os.system('ping -c 1 -w1 wp8_tristancole')
-	if response == 0:
-		#yes in
-		bCloser.config(fg='green')
-	else:
-		bCloser.config(fg='red')
-		
+	try:
+		response = os.system('ping -c 1 -w1 wp8_tristancole')
+		if response == 0:
+			#yes in
+			bCloser.config(fg='green')
+		else:
+			bCloser.config(fg='red')
+	except:
+		bCloser.config(fg='blue')
+
 
 def fnCloseNow():
 	print 'Closing now...'
