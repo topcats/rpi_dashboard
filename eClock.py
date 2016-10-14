@@ -25,22 +25,15 @@ def tick(tick_time1=''):
 		if tick_time2 != tick_time1:
 			tick_time1 = tick_time2
 			clock.config(text=tick_time2)
-			fnGetTristanHome();
+			# fnGetTristanHome();
 		# calls itself every 200 milliseconds
 		# to update the time display as needed
 		min2=tick_time2.split(':')
 		if (min2[1]=='30' or min2[1]=='00') and blnflag==True:
 			#Update Date and set colours
 			clockdate.config(text=time.strftime('%A %d %b %Y'))
-			if (min2[0]>=23 or min2[0]<=7):
-				clock.config(fg='red')
-				weathercanvas.itemconfig(weatherlabel, fill='#808080')
-			else:
-				clock.config(fg='green')
-				weathercanvas.itemconfig(weatherlabel, fill='white')
-
+			fnUpdateColor()
 			fnGetWeather()
-
 			infodlna.config(text=fnGetDlnaText())
 
 			blnflag = False
@@ -90,11 +83,13 @@ def fnGetWeather():
 
 	#photoimg = tk.PhotoImage(file="default.png")
 	#imgcanvas.create_image(150, 150, image=photoimg)
-	weatherimgsrc = Image.open("icon_weather.png")
-	weatherimgphoto = ImageTk.PhotoImage(weatherimgsrc)
 	#weathercanvas.delete(weathernowimage)
+	#time.sleep(2)
+	weatherimgsrcb = Image.open("icon_weather.png")
+	weatherimgphotob = ImageTk.PhotoImage(weatherimgsrcb)
+	#del weathernowimage
 	#weathernowimage = weathercanvas.create_image(30, 30, image=weatherimgphoto)
-
+	weathercanvas.itemconfig(weathernowimage, image=weatherimgphotob)
 	weathercanvas.itemconfig(weatherlabel, text='Weather (' + str(mylist[3]) + ') : '+"\n"+ str(mylist[0])+" : : "+ str(mylist[1]) + " °c")
 
 
@@ -128,6 +123,22 @@ def fnGetTristanHome():
 			bCloser.config(fg='red')
 	except:
 		bCloser.config(fg='blue')
+
+
+def fnUpdateColor():
+	tick_time2 = time.strftime('%H:%M:%S')
+	updatemin=tick_time2.split(':')
+	if (int(updatemin[0])>=23 or int(updatemin[0])<=7):
+		clock.config(fg='#491d25')
+		clockdate.config(fg='#3a171d')
+		weathercanvas.itemconfig(weatherlabel, fill='#444444')
+		infodlna.config(fg='#000066')
+	else:
+		clock.config(fg='green')
+		clockdate.config(fg='#ff6666')
+		weathercanvas.itemconfig(weatherlabel, fill='white')
+		infodlna.config(fg='blue')
+
 
 
 def fnCloseNow():
@@ -181,9 +192,10 @@ weathercanvas.pack(fill='both')
 infodlna.pack(fill='both',expand=1)
 blnflag = True
 
-fnGetWeather()
 infodlna.config(text=fnGetDlnaText())
 
 tick()
+clockdate.after(2000, fnUpdateColor)
+weathercanvas.after(5000, fnGetWeather)
 root.mainloop()
 

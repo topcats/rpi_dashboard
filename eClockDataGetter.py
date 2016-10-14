@@ -2,7 +2,6 @@
 import urllib2
 import urllib
 import json
-from string import capitalize
 import time
 import os
 import shutil
@@ -18,6 +17,7 @@ def fnGetWeather():
 	
 	try:
 		if os.path.isfile ('/home/pi/dashdisplay/data_weather.txt'): shutil.copyfile ('/home/pi/dashdisplay/data_weather.txt', '/home/pi/dashdisplay/data_weather.old.txt')
+		if os.path.isfile ('/home/pi/dashdisplay/data_forcast.txt'): shutil.copyfile ('/home/pi/dashdisplay/data_forcast.txt', '/home/pi/dashdisplay/data_forcast.old.txt')
 		if os.path.isfile ('/home/pi/dashdisplay/icon_weather.png'): shutil.copyfile ('/home/pi/dashdisplay/icon_weather.png', '/home/pi/dashdisplay/icon_weather.old.png')
 		if (data_timediff >= (1700)):
 			#http://openweathermap.org/current#parameter
@@ -31,15 +31,28 @@ def fnGetWeather():
 			
 			if str(json_obj['name']) <> 'Ashburton':
 				raise Exception("Incorrect Location")
+			time.sleep(1)
+			
 			weatherimage_url = 'http://openweathermap.org/img/w/'+str(json_obj['weather'][0]['icon'])+'.png'
 			urllib.urlretrieve(weatherimage_url,'/home/pi/dashdisplay/icon_weather.png')
+			time.sleep(1)
+			
+			url_to_call = 'http://api.openweathermap.org/data/2.5/forecast?id=2656977&appid=08b5e93e4e18f3bb67193ab5fa179abc&units=metric'
+			response = urllib2.urlopen(url_to_call)
+			json_obj = json.load(response)
+			with open('/home/pi/dashdisplay/data_forcast.txt','w') as fp:
+				json.dump(json_obj, fp)
+			
+			if str(json_obj['city']['name']) <> 'Ashburton':
+				raise Exception("Incorrect Forcast Location")
+			time.sleep(1)
 	
 	except Exception as z:
 		print 'Error:fnGetWeather', z
-		if os.path.isfile ('/home/pi/dashdisplay/data_weather.old.txt'):
-			shutil.copyfile('/home/pi/dashdisplay/data_weather.old.txt','/home/pi/dashdisplay/data_weather.txt') 
-		if os.path.isfile ('/home/pi/dashdisplay/icon_weather.old.png'):
-			shutil.copyfile('/home/pi/dashdisplay/icon_weather.old.png','/home/pi/dashdisplay/icon_weather.png') 
+		if os.path.isfile ('/home/pi/dashdisplay/data_weather.old.txt'): shutil.copyfile('/home/pi/dashdisplay/data_weather.old.txt','/home/pi/dashdisplay/data_weather.txt') 
+		if os.path.isfile ('/home/pi/dashdisplay/data_forcast.old.txt'): shutil.copyfile('/home/pi/dashdisplay/data_forcast.old.txt','/home/pi/dashdisplay/data_forcast.txt') 
+		if os.path.isfile ('/home/pi/dashdisplay/icon_weather.old.png'): shutil.copyfile('/home/pi/dashdisplay/icon_weather.old.png','/home/pi/dashdisplay/icon_weather.png') 
+
 
 def fnGetDlna():
 	data_timediff = 24*3600
