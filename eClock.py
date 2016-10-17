@@ -48,6 +48,7 @@ def tick(tick_time1=''):
 		tick()
 
 
+
 def fnGetWeatherStatus():
 	try:
 		with open('data_weather.txt') as fp:
@@ -69,34 +70,48 @@ def fnGetWeatherStatus():
 
 
 def fnGetWeather():
+	# update weather text
 	mylist = fnGetWeatherStatus()
-	#mylist = ['skipped','skip','default.png']
-	#local_encoding = 'cp850'
-	#deg = u'\xb0'.encode(local_encoding)
-	#sub= "°C.".decode('utf8').encode(local_encoding)
-	#response = urllib2.urlopen(weatherimage_url)
-	#weatherimage_file = io.BytesIO(response.read())
-	#weatherimage = Image.open(weatherimage_file)
-	#weatherphoto = tk.PhotoImage(weatherimage)
-	#weathericon.config(image=weatherphoto)
-	#weathericon.config(photo=weatherphoto)
-	#weathericon.image = weatherphoto # keep a reference!
-	#imgcanvas = Canvas(weatherfr, bg="green", width=200, height=200)
-	#imgcanvas.pack(side='left')
-
-	#photoimg = tk.PhotoImage(file="default.png")
-	#imgcanvas.create_image(150, 150, image=photoimg)
-	#weathercanvas.delete(weathernowimage)
-	#time.sleep(2)
-	global weatherimgsrcb
-	global weatherimgphotob
-	weatherimgsrcb = Image.open("icon_weather.png")
-	weatherimgphotob = ImageTk.PhotoImage(weatherimgsrcb)
-	#del weathernowimage
-	#weathernowimage = weathercanvas.create_image(30, 30, image=weatherimgphoto)
-	weathercanvas.itemconfig(weathernowimage, image=weatherimgphotob)
 	weathercanvas.itemconfig(weatherlabel, text='Weather (' + str(mylist[3]) + ') : '+"\n"+ str(mylist[0])+" : : "+ str(mylist[1]) + " °c")
 	weathercanvas.itemconfig(weathersuntimes, text=str(mylist[2]))
+
+	# Update weather icons
+	global weatherimgsrcb
+	global weatherimgphotob
+	global weatherimgsrcf1
+	global weatherimgphotof1
+	global weatherimgsrcf2
+	global weatherimgphotof2
+	global weatherimgsrcf3
+	global weatherimgphotof3
+	global weatherimgsrcf4
+	global weatherimgphotof4
+	global weatherimgsrcf5
+	global weatherimgphotof5
+	if os.path.isfile ('/home/pi/dashdisplay/icon_weather.png'): 
+		weatherimgsrcb = Image.open("icon_weather.png")
+		weatherimgphotob = ImageTk.PhotoImage(weatherimgsrcb)
+		weathercanvas.itemconfig(weathernowimage, image=weatherimgphotob)
+	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast1.png'): 
+		weatherimgsrcf1 = Image.open("icon_forcast1.png")
+		weatherimgphotof1 = ImageTk.PhotoImage(weatherimgsrcf1)
+		weathercanvas.itemconfig(weatherfore1image, image=weatherimgphotof1)
+	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast2.png'): 
+		weatherimgsrcf2 = Image.open("icon_forcast2.png")
+		weatherimgphotof2 = ImageTk.PhotoImage(weatherimgsrcf2)
+		weathercanvas.itemconfig(weatherfore2image, image=weatherimgphotof2)
+	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast3.png'): 
+		weatherimgsrcf3 = Image.open("icon_forcast3.png")
+		weatherimgphotof3 = ImageTk.PhotoImage(weatherimgsrcf3)
+		weathercanvas.itemconfig(weatherfore3image, image=weatherimgphotof3)
+	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast4.png'): 
+		weatherimgsrcf4 = Image.open("icon_forcast4.png")
+		weatherimgphotof4 = ImageTk.PhotoImage(weatherimgsrcf4)
+		weathercanvas.itemconfig(weatherfore4image, image=weatherimgphotof4)
+	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast5.png'): 
+		weatherimgsrcf5 = Image.open("icon_forcast5.png")
+		weatherimgphotof5 = ImageTk.PhotoImage(weatherimgsrcf5)
+		weathercanvas.itemconfig(weatherfore5image, image=weatherimgphotof5)
 
 
 
@@ -148,7 +163,9 @@ def fnUpdateColor():
 		infodlna.config(fg='blue')
 		fnSetRPIbrightness(255)
 		
-	if (int(updatemin[0])>=23 or int(updatemin[0])<=7):
+	if (int(updatemin[0])<=6):
+		fnSetRPIbrightness(20)
+	elif (int(updatemin[0])>=23 or int(updatemin[0])<=7):
 		fnSetRPIbrightness(40)
 	elif (int(updatemin[0])>=22 or int(updatemin[0])<=8):
 		fnSetRPIbrightness(100)
@@ -171,40 +188,41 @@ def fnCloseNow():
 	#sys.exit()
 
 
-
+####################################################
 #main program
 root = tk.Tk()
 root.attributes("-fullscreen",True)
 root.config(cursor="none")
 root.config(background="black")
 
-#Close Button
+# Display Close Button
 bCloser = tk.Button(root, text='X', fg='red', bg='black', command=fnCloseNow)
 bCloser.pack(side='right')
 
+# Display Clock and Date 
 clock = tk.Label(root, font=('times', 50, 'bold'), fg='green',bg='black')
 clockdate = tk.Label(root, font=('times', 30, 'bold'), fg='#ff6666', bg='black', text=time.strftime('%A %d %b %Y'))
 
-#weatherfr = tk.Frame(root, bg='black')
-#weatherlabel = tk.Label(weatherfr,font=('times', 30), fg='white',bg='black')
-#weathericon = tk.Label(weatherfr,bg='white',bd=0,compound='center',height=32,padx=0,pady=0,width=32)
-#weathericon.pack(side='left')
-#weatherlabel.pack(fill='both', expand=1)
-
-
-weathercanvas = Canvas(root, bg="black", width=300, height=150, borderwidth=0)
+# Display Weather info
+weathercanvas = Canvas(root, bg="black", width=700, height=150, borderwidth=0)
 weatherimgsrc = Image.open("default.png")
 weatherimgphoto = ImageTk.PhotoImage(weatherimgsrc)
 weathernowimage = weathercanvas.create_image(30, 30, image=weatherimgphoto)
-weatherlabel = weathercanvas.create_text(300,46, font=('times', 26), fill='white', justify='center', text='Weather Info')
-weathersuntimes = weathercanvas.create_text(700,30, font=('times',14), fill='yellow', justify='right', text='sun light')
+weatherlabel = weathercanvas.create_text(300, 46, font=('times', 26), fill='white', justify='center', text='Weather Info')
+weathersuntimes = weathercanvas.create_text(700, 30, font=('times',14), fill='yellow', justify='right', text='sun light')
+weatherfore1image = weathercanvas.create_image(120, 120, image=weatherimgphoto)
+weatherfore2image = weathercanvas.create_image(180, 120, image=weatherimgphoto)
+weatherfore3image = weathercanvas.create_image(240, 120, image=weatherimgphoto)
+weatherfore4image = weathercanvas.create_image(300, 120, image=weatherimgphoto)
+weatherfore5image = weathercanvas.create_image(360, 120, image=weatherimgphoto)
 
+# Display DLNA info
 infodlna=tk.Label(root,font=('times', 20), fg='blue',bg='black')
 
+# Display info on screen
 clock.pack(fill='both', expand=1)
 clockdate.pack(fill='both', expand=1)
 weathercanvas.pack(fill='both')
-#weatherfr.pack(fill='both', expand=1)
 infodlna.pack(fill='both',expand=1)
 blnflag = True
 
