@@ -18,11 +18,11 @@ def fnGetWeather():
 	try:
 		if os.path.isfile ('/home/pi/dashdisplay/data_weather.txt'): shutil.copyfile ('/home/pi/dashdisplay/data_weather.txt', '/home/pi/dashdisplay/data_weather.old.txt')
 		if os.path.isfile ('/home/pi/dashdisplay/data_forcast.txt'): shutil.copyfile ('/home/pi/dashdisplay/data_forcast.txt', '/home/pi/dashdisplay/data_forcast.old.txt')
-		if os.path.isfile ('/home/pi/dashdisplay/icon_weather.png'): shutil.copyfile ('/home/pi/dashdisplay/icon_weather.png', '/home/pi/dashdisplay/icon_weather.old.png')
 		if (data_timediff >= (1700)):
 			#http://openweathermap.org/current#parameter
 			#Ashburton:2656977
 			#Downham Market:2651030
+			# Get Weather, check for name and get icon image
 			url_to_call = 'http://api.openweathermap.org/data/2.5/weather?id=2656977&appid=08b5e93e4e18f3bb67193ab5fa179abc&units=metric'
 			response = urllib2.urlopen(url_to_call)
 			json_obj = json.load(response)
@@ -33,9 +33,7 @@ def fnGetWeather():
 				raise Exception("Incorrect Location")
 			time.sleep(1)
 			
-			weatherimage_url = 'http://openweathermap.org/img/w/'+str(json_obj['weather'][0]['icon'])+'.png'
-			urllib.urlretrieve(weatherimage_url,'/home/pi/dashdisplay/icon_weather.png')
-			time.sleep(1)
+			fnGetWeatherIcon(json_obj['weather'][0]['icon'], 'weather')
 			
 			url_to_call = 'http://api.openweathermap.org/data/2.5/forecast?id=2656977&appid=08b5e93e4e18f3bb67193ab5fa179abc&units=metric'
 			response = urllib2.urlopen(url_to_call)
@@ -46,12 +44,32 @@ def fnGetWeather():
 			if str(json_obj['city']['name']) <> 'Ashburton':
 				raise Exception("Incorrect Forcast Location")
 			time.sleep(1)
+
+			fnGetWeatherIcon(json_obj['list'][0]['weather'][0]['icon'], 'forcast1')
+			fnGetWeatherIcon(json_obj['list'][1]['weather'][0]['icon'], 'forcast2')
+			fnGetWeatherIcon(json_obj['list'][2]['weather'][0]['icon'], 'forcast3')
+			fnGetWeatherIcon(json_obj['list'][3]['weather'][0]['icon'], 'forcast4')
+			fnGetWeatherIcon(json_obj['list'][4]['weather'][0]['icon'], 'forcast5')
+
+
 	
 	except Exception as z:
 		print 'Error:fnGetWeather', z
 		if os.path.isfile ('/home/pi/dashdisplay/data_weather.old.txt'): shutil.copyfile('/home/pi/dashdisplay/data_weather.old.txt','/home/pi/dashdisplay/data_weather.txt') 
 		if os.path.isfile ('/home/pi/dashdisplay/data_forcast.old.txt'): shutil.copyfile('/home/pi/dashdisplay/data_forcast.old.txt','/home/pi/dashdisplay/data_forcast.txt') 
-		if os.path.isfile ('/home/pi/dashdisplay/icon_weather.old.png'): shutil.copyfile('/home/pi/dashdisplay/icon_weather.old.png','/home/pi/dashdisplay/icon_weather.png') 
+
+
+def fnGetWeatherIcon(value,target):
+	try:
+		if os.path.isfile ('/home/pi/dashdisplay/icon_'+target+'.png'): shutil.copyfile ('/home/pi/dashdisplay/icon_'+target+'.png', '/home/pi/dashdisplay/icon_'+target+'.old.png')
+		
+		weatherimage_url = 'http://openweathermap.org/img/w/'+str(value)+'.png'
+		urllib.urlretrieve(weatherimage_url,'/home/pi/dashdisplay/icon_'+target+'.png')
+		time.sleep(1)
+		
+	except Exception as z:
+		print 'Error:fnGetWeatherIcon', z
+		if os.path.isfile ('/home/pi/dashdisplay/icon_'+target+'.old.png'): shutil.copyfile('/home/pi/dashdisplay/icon_'+target+'.old.png','/home/pi/dashdisplay/icon_'+target+'.png') 
 
 
 def fnGetDlna():

@@ -5,6 +5,7 @@ import json
 from string import capitalize
 from PIL import Image, ImageTk
 import time
+import datetime
 import os
 try:
 	# Python2
@@ -29,7 +30,7 @@ def tick(tick_time1=''):
 		# calls itself every 200 milliseconds
 		# to update the time display as needed
 		min2=tick_time2.split(':')
-		if (min2[1]=='30' or min2[1]=='00') and blnflag==True:
+		if (min2[1]=='32' or min2[1]=='02') and blnflag==True:
 			#Update Date and set colours
 			clockdate.config(text=time.strftime('%A %d %b %Y'))
 			fnUpdateColor()
@@ -37,7 +38,7 @@ def tick(tick_time1=''):
 			infodlna.config(text=fnGetDlnaText())
 
 			blnflag = False
-		elif min2[1]!='30' and min2[1]!='00':
+		elif min2[1]!='32' and min2[1]!='02':
 			blnflag = True
 
 		clock.after(200, tick)
@@ -55,14 +56,16 @@ def fnGetWeatherStatus():
 		current_desc = capitalize(json_obj['weather'][0]['description'])
 		#current_temp = kelvinToCelsius(json_obj['main']['temp'])
 		current_temp = json_obj['main']['temp']
-		current_icon = json_obj['weather'][0]['icon']
 		current_location = json_obj['name']
+		current_sunlight = datetime.datetime.fromtimestamp(int(json_obj['sys']['sunrise'])).strftime('%H:%M')
+		current_sunlight = current_sunlight + ' - '
+		current_sunlight = current_sunlight + datetime.datetime.fromtimestamp(int(json_obj['sys']['sunset'])).strftime('%H:%M')
 
-		return current_desc,current_temp,current_icon,current_location
+		return current_desc,current_temp,current_sunlight,current_location
 
 	except:
 		print 'Error:fnGetWeather'
-		return 'Error','Error','01n','unknown'
+		return 'Error','Error','00:00 - 00:00','unknown'
 
 
 def fnGetWeather():
@@ -85,12 +88,15 @@ def fnGetWeather():
 	#imgcanvas.create_image(150, 150, image=photoimg)
 	#weathercanvas.delete(weathernowimage)
 	#time.sleep(2)
+	global weatherimgsrcb
+	global weatherimgphotob
 	weatherimgsrcb = Image.open("icon_weather.png")
 	weatherimgphotob = ImageTk.PhotoImage(weatherimgsrcb)
 	#del weathernowimage
 	#weathernowimage = weathercanvas.create_image(30, 30, image=weatherimgphoto)
 	weathercanvas.itemconfig(weathernowimage, image=weatherimgphotob)
 	weathercanvas.itemconfig(weatherlabel, text='Weather (' + str(mylist[3]) + ') : '+"\n"+ str(mylist[0])+" : : "+ str(mylist[1]) + " °c")
+	weathercanvas.itemconfig(weathersuntimes, text=str(mylist[2]))
 
 
 
@@ -132,13 +138,30 @@ def fnUpdateColor():
 		clock.config(fg='#491d25')
 		clockdate.config(fg='#3a171d')
 		weathercanvas.itemconfig(weatherlabel, fill='#444444')
+		weathercanvas.itemconfig(weathersuntimes, fill='#444444')
 		infodlna.config(fg='#000066')
 	else:
 		clock.config(fg='green')
 		clockdate.config(fg='#ff6666')
 		weathercanvas.itemconfig(weatherlabel, fill='white')
+		weathercanvas.itemconfig(weathersuntimes, fill='yellow')
 		infodlna.config(fg='blue')
+		fnSetRPIbrightness(255)
+		
+	if (int(updatemin[0])>=23 or int(updatemin[0])<=7):
+		fnSetRPIbrightness(40)
+	elif (int(updatemin[0])>=22 or int(updatemin[0])<=8):
+		fnSetRPIbrightness(100)
 
+
+
+def fnSetRPIbrightness(value):
+	try:
+		rpibrightness = open('/sys/class/backlight/rpi_backlight/brightness', 'w')
+		rpibrightness.write(str(value))
+		rpibrightness.close()
+	except:
+		print 'fnSetRPIbrightness failed'
 
 
 def fnCloseNow():
@@ -170,18 +193,11 @@ clockdate = tk.Label(root, font=('times', 30, 'bold'), fg='#ff6666', bg='black',
 
 
 weathercanvas = Canvas(root, bg="black", width=300, height=150, borderwidth=0)
-
 weatherimgsrc = Image.open("default.png")
 weatherimgphoto = ImageTk.PhotoImage(weatherimgsrc)
 weathernowimage = weathercanvas.create_image(30, 30, image=weatherimgphoto)
-
 weatherlabel = weathercanvas.create_text(300,46, font=('times', 26), fill='white', justify='center', text='Weather Info')
-
-#weatherfd = urllib2.urlopen("http://openweathermap.org/img/w/01n.png")
-#weatherimage_file = io.BytesIO(weatherfd.read())
-#weatherimage = Image.open(weatherimage_file)
-#weatherphoto = ImageTk.PhotoImage(weatherimage)
-#weather.config(text='Weather loading ...'+weatherphoto)
+weathersuntimes = weathercanvas.create_text(700,30, font=('times',14), fill='yellow', justify='right', text='sun light')
 
 infodlna=tk.Label(root,font=('times', 20), fg='blue',bg='black')
 
