@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import urllib2
 import urllib
 import json
@@ -15,7 +15,7 @@ except ImportError:
 	# Python3
 	import tkinter as tk
 	from tkinter import Frame, Canvas
-
+os.chdir('/home/pi/dashdisplay')
 
 def tick(tick_time1=''):
 	try:
@@ -26,11 +26,11 @@ def tick(tick_time1=''):
 		if tick_time2 != tick_time1:
 			tick_time1 = tick_time2
 			clock.config(text=tick_time2)
-			# fnGetTristanHome();
+			fnGetTristanHome();
 		# calls itself every 200 milliseconds
 		# to update the time display as needed
 		min2=tick_time2.split(':')
-		if (min2[1]=='32' or min2[1]=='02') and blnflag==True:
+		if (min2[1]=='31' or min2[1]=='01') and blnflag==True:
 			#Update Date and set colours
 			clockdate.config(text=time.strftime('%A %d %b %Y'))
 			fnUpdateColor()
@@ -38,7 +38,7 @@ def tick(tick_time1=''):
 			infodlna.config(text=fnGetDlnaText())
 
 			blnflag = False
-		elif min2[1]!='32' and min2[1]!='02':
+		elif min2[1]!='31' and min2[1]!='01':
 			blnflag = True
 
 		clock.after(200, tick)
@@ -74,7 +74,7 @@ def fnGetWeather():
 	mylist = fnGetWeatherStatus()
 	weathercanvas.itemconfig(weatherlabel, text='Weather (' + str(mylist[3]) + ') : '+"\n"+ str(mylist[0])+" : : "+ str(mylist[1]) + " °c")
 	weathercanvas.itemconfig(weathersuntimes, text=str(mylist[2]))
-
+	
 	# Update weather icons
 	global weatherimgsrcb
 	global weatherimgphotob
@@ -88,30 +88,34 @@ def fnGetWeather():
 	global weatherimgphotof4
 	global weatherimgsrcf5
 	global weatherimgphotof5
-	if os.path.isfile ('/home/pi/dashdisplay/icon_weather.png'): 
-		weatherimgsrcb = Image.open("icon_weather.png")
-		weatherimgphotob = ImageTk.PhotoImage(weatherimgsrcb)
-		weathercanvas.itemconfig(weathernowimage, image=weatherimgphotob)
-	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast1.png'): 
-		weatherimgsrcf1 = Image.open("icon_forcast1.png")
-		weatherimgphotof1 = ImageTk.PhotoImage(weatherimgsrcf1)
-		weathercanvas.itemconfig(weatherfore1image, image=weatherimgphotof1)
-	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast2.png'): 
-		weatherimgsrcf2 = Image.open("icon_forcast2.png")
-		weatherimgphotof2 = ImageTk.PhotoImage(weatherimgsrcf2)
-		weathercanvas.itemconfig(weatherfore2image, image=weatherimgphotof2)
-	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast3.png'): 
-		weatherimgsrcf3 = Image.open("icon_forcast3.png")
-		weatherimgphotof3 = ImageTk.PhotoImage(weatherimgsrcf3)
-		weathercanvas.itemconfig(weatherfore3image, image=weatherimgphotof3)
-	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast4.png'): 
-		weatherimgsrcf4 = Image.open("icon_forcast4.png")
-		weatherimgphotof4 = ImageTk.PhotoImage(weatherimgsrcf4)
-		weathercanvas.itemconfig(weatherfore4image, image=weatherimgphotof4)
-	if os.path.isfile ('/home/pi/dashdisplay/icon_forcast5.png'): 
-		weatherimgsrcf5 = Image.open("icon_forcast5.png")
-		weatherimgphotof5 = ImageTk.PhotoImage(weatherimgsrcf5)
-		weathercanvas.itemconfig(weatherfore5image, image=weatherimgphotof5)
+	
+	try:
+		if os.path.isfile ('/home/pi/dashdisplay/icon_weather.png'): 
+			weatherimgsrcb = Image.open("icon_weather.png")
+			weatherimgphotob = ImageTk.PhotoImage(weatherimgsrcb)
+			weathercanvas.itemconfig(weathernowimage, image=weatherimgphotob)
+		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast1.png'): 
+			weatherimgsrcf1 = Image.open("icon_forcast1.png")
+			weatherimgphotof1 = ImageTk.PhotoImage(weatherimgsrcf1)
+			weathercanvas.itemconfig(weatherfore1image, image=weatherimgphotof1)
+		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast2.png'): 
+			weatherimgsrcf2 = Image.open("icon_forcast2.png")
+			weatherimgphotof2 = ImageTk.PhotoImage(weatherimgsrcf2)
+			weathercanvas.itemconfig(weatherfore2image, image=weatherimgphotof2)
+		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast3.png'): 
+			weatherimgsrcf3 = Image.open("icon_forcast3.png")
+			weatherimgphotof3 = ImageTk.PhotoImage(weatherimgsrcf3)
+			weathercanvas.itemconfig(weatherfore3image, image=weatherimgphotof3)
+		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast4.png'): 
+			weatherimgsrcf4 = Image.open("icon_forcast4.png")
+			weatherimgphotof4 = ImageTk.PhotoImage(weatherimgsrcf4)
+			weathercanvas.itemconfig(weatherfore4image, image=weatherimgphotof4)
+		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast5.png'): 
+			weatherimgsrcf5 = Image.open("icon_forcast5.png")
+			weatherimgphotof5 = ImageTk.PhotoImage(weatherimgsrcf5)
+			weathercanvas.itemconfig(weatherfore5image, image=weatherimgphotof5)
+	except:
+		print 'some weather icon update error'
 
 
 
@@ -136,7 +140,7 @@ def fnGetDlnaText():
 
 def fnGetTristanHome():
 	try:
-		response = os.system('ping -c 1 -w1 wp8_tristancole')
+		response = os.system('ping -c 1 -w1 wp8_tristancole > /dev/null 2>&1')
 		if response == 0:
 			#yes in
 			bCloser.config(fg='green')

@@ -29,6 +29,7 @@ echo 1 > /sys/class/backlight/rpi_backlight/bl_power
 backlight = open('/sys/class/backlight/rpi_backlight/bl_power', 'w')
 backlight.write('1') # turn on
 backlight.write('0') # turn off
+backlight.close()
 ```
 
 # Brightness Control
