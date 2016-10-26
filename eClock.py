@@ -15,6 +15,7 @@ except ImportError:
 	# Python3
 	import tkinter as tk
 	from tkinter import Frame, Canvas
+# MAKE SURE WE is in the correct directory
 os.chdir('/home/pi/dashdisplay')
 
 def tick(tick_time1=''):
@@ -53,20 +54,35 @@ def fnGetWeatherStatus():
 	try:
 		with open('data_weather.txt') as fp:
 			json_obj = json.load(fp)
+		with open('data_forcast.txt') as fp:
+			json_objb = json.load(fp)
 
 		current_desc = capitalize(json_obj['weather'][0]['description'])
 		#current_temp = kelvinToCelsius(json_obj['main']['temp'])
 		current_temp = json_obj['main']['temp']
+		current_time = datetime.datetime.fromtimestamp(int(json_obj['dt'])).strftime('%H:%M')
 		current_location = json_obj['name']
 		current_sunlight = datetime.datetime.fromtimestamp(int(json_obj['sys']['sunrise'])).strftime('%H:%M')
 		current_sunlight = current_sunlight + ' - '
 		current_sunlight = current_sunlight + datetime.datetime.fromtimestamp(int(json_obj['sys']['sunset'])).strftime('%H:%M')
+		#forcast_times = '00:00        01:00        02:00        03:00        04:00'
+		
+		forcast_times = datetime.datetime.fromtimestamp(int(json_objb['list'][0]['dt'])).strftime('%H:%M')
+		forcast_times = forcast_times + '        '
+		forcast_times = forcast_times + datetime.datetime.fromtimestamp(int(json_objb['list'][1]['dt'])).strftime('%H:%M')
+		forcast_times = forcast_times + '        '
+		forcast_times = forcast_times + datetime.datetime.fromtimestamp(int(json_objb['list'][2]['dt'])).strftime('%H:%M')
+		forcast_times = forcast_times + '        '
+		forcast_times = forcast_times + datetime.datetime.fromtimestamp(int(json_objb['list'][3]['dt'])).strftime('%H:%M')
+		forcast_times = forcast_times + '       '
+		forcast_times = forcast_times + datetime.datetime.fromtimestamp(int(json_objb['list'][4]['dt'])).strftime('%H:%M')
+		forcast_times = forcast_times + ' '
 
-		return current_desc,current_temp,current_sunlight,current_location
-
+		return current_desc,current_temp,current_sunlight,current_location,current_time,forcast_times
+	
 	except:
 		print 'Error:fnGetWeather'
-		return 'Error','Error','00:00 - 00:00','unknown'
+		return 'Error','Error','00:00 - 00:00','unknown', '00:00', '00:00'
 
 
 def fnGetWeather():
@@ -74,6 +90,9 @@ def fnGetWeather():
 	mylist = fnGetWeatherStatus()
 	weathercanvas.itemconfig(weatherlabel, text='Weather (' + str(mylist[3]) + ') : '+"\n"+ str(mylist[0])+" : : "+ str(mylist[1]) + " °c")
 	weathercanvas.itemconfig(weathersuntimes, text=str(mylist[2]))
+	weathercanvas.itemconfig(weathernowtime, text=str(mylist[4]))
+	weathercanvas.itemconfig(weatherforetext, text=str(mylist[5]))
+	
 	
 	# Update weather icons
 	global weatherimgsrcb
@@ -90,27 +109,27 @@ def fnGetWeather():
 	global weatherimgphotof5
 	
 	try:
-		if os.path.isfile ('/home/pi/dashdisplay/icon_weather.png'): 
+		if os.path.isfile ('icon_weather.png'): 
 			weatherimgsrcb = Image.open("icon_weather.png")
 			weatherimgphotob = ImageTk.PhotoImage(weatherimgsrcb)
 			weathercanvas.itemconfig(weathernowimage, image=weatherimgphotob)
-		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast1.png'): 
+		if os.path.isfile ('icon_forcast1.png'): 
 			weatherimgsrcf1 = Image.open("icon_forcast1.png")
 			weatherimgphotof1 = ImageTk.PhotoImage(weatherimgsrcf1)
 			weathercanvas.itemconfig(weatherfore1image, image=weatherimgphotof1)
-		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast2.png'): 
+		if os.path.isfile ('icon_forcast2.png'): 
 			weatherimgsrcf2 = Image.open("icon_forcast2.png")
 			weatherimgphotof2 = ImageTk.PhotoImage(weatherimgsrcf2)
 			weathercanvas.itemconfig(weatherfore2image, image=weatherimgphotof2)
-		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast3.png'): 
+		if os.path.isfile ('icon_forcast3.png'): 
 			weatherimgsrcf3 = Image.open("icon_forcast3.png")
 			weatherimgphotof3 = ImageTk.PhotoImage(weatherimgsrcf3)
 			weathercanvas.itemconfig(weatherfore3image, image=weatherimgphotof3)
-		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast4.png'): 
+		if os.path.isfile ('icon_forcast4.png'): 
 			weatherimgsrcf4 = Image.open("icon_forcast4.png")
 			weatherimgphotof4 = ImageTk.PhotoImage(weatherimgsrcf4)
 			weathercanvas.itemconfig(weatherfore4image, image=weatherimgphotof4)
-		if os.path.isfile ('/home/pi/dashdisplay/icon_forcast5.png'): 
+		if os.path.isfile ('icon_forcast5.png'): 
 			weatherimgsrcf5 = Image.open("icon_forcast5.png")
 			weatherimgphotof5 = ImageTk.PhotoImage(weatherimgsrcf5)
 			weathercanvas.itemconfig(weatherfore5image, image=weatherimgphotof5)
@@ -158,12 +177,16 @@ def fnUpdateColor():
 		clockdate.config(fg='#3a171d')
 		weathercanvas.itemconfig(weatherlabel, fill='#444444')
 		weathercanvas.itemconfig(weathersuntimes, fill='#444444')
+		weathercanvas.itemconfig(weatherforetext, fill='#444444')
+		weathercanvas.itemconfig(weathernowtime, fill='#444444')
 		infodlna.config(fg='#000066')
 	else:
 		clock.config(fg='green')
 		clockdate.config(fg='#ff6666')
 		weathercanvas.itemconfig(weatherlabel, fill='white')
 		weathercanvas.itemconfig(weathersuntimes, fill='yellow')
+		weathercanvas.itemconfig(weatherforetext, fill='white')
+		weathercanvas.itemconfig(weathernowtime, fill='white')
 		infodlna.config(fg='blue')
 		fnSetRPIbrightness(255)
 		
@@ -208,17 +231,19 @@ clock = tk.Label(root, font=('times', 50, 'bold'), fg='green',bg='black')
 clockdate = tk.Label(root, font=('times', 30, 'bold'), fg='#ff6666', bg='black', text=time.strftime('%A %d %b %Y'))
 
 # Display Weather info
-weathercanvas = Canvas(root, bg="black", width=700, height=150, borderwidth=0)
+weathercanvas = Canvas(root, bg="black", width=700, height=170, borderwidth=0)
 weatherimgsrc = Image.open("default.png")
 weatherimgphoto = ImageTk.PhotoImage(weatherimgsrc)
 weathernowimage = weathercanvas.create_image(30, 30, image=weatherimgphoto)
 weatherlabel = weathercanvas.create_text(300, 46, font=('times', 26), fill='white', justify='center', text='Weather Info')
+weathernowtime = weathercanvas.create_text(30, 60, font=('times',14), fill='white', justify='center', text='00:00')
 weathersuntimes = weathercanvas.create_text(700, 30, font=('times',14), fill='yellow', justify='right', text='sun light')
 weatherfore1image = weathercanvas.create_image(120, 120, image=weatherimgphoto)
-weatherfore2image = weathercanvas.create_image(180, 120, image=weatherimgphoto)
-weatherfore3image = weathercanvas.create_image(240, 120, image=weatherimgphoto)
-weatherfore4image = weathercanvas.create_image(300, 120, image=weatherimgphoto)
-weatherfore5image = weathercanvas.create_image(360, 120, image=weatherimgphoto)
+weatherfore2image = weathercanvas.create_image(200, 120, image=weatherimgphoto)
+weatherfore3image = weathercanvas.create_image(280, 120, image=weatherimgphoto)
+weatherfore4image = weathercanvas.create_image(360, 120, image=weatherimgphoto)
+weatherfore5image = weathercanvas.create_image(440, 120, image=weatherimgphoto)
+weatherforetext = weathercanvas.create_text(280, 150, font=('times',14), fill='white', justify='center', text='00:00')
 
 # Display DLNA info
 infodlna=tk.Label(root,font=('times', 20), fg='blue',bg='black')
