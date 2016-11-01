@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 import time
 import datetime
 import os
+import ConfigParser
 try:
 	# Python2
 	import Tkinter as tk
@@ -15,8 +16,11 @@ except ImportError:
 	# Python3
 	import tkinter as tk
 	from tkinter import Frame, Canvas
+
 # MAKE SURE WE is in the correct directory
 os.chdir('/home/pi/dashdisplay')
+config = ConfigParser.ConfigParser()
+config.read('eClock.cfg')
 
 def tick(tick_time1=''):
 	try:
@@ -27,7 +31,7 @@ def tick(tick_time1=''):
 		if tick_time2 != tick_time1:
 			tick_time1 = tick_time2
 			clock.config(text=tick_time2)
-			fnGetTristanHome();
+			fnGetOwnerHome();
 		# calls itself every 200 milliseconds
 		# to update the time display as needed
 		min2=tick_time2.split(':')
@@ -157,9 +161,9 @@ def fnGetDlnaText():
 	return 'DLNA Status: '+"\n"+ 'VID:'+mydlna[0]+'  MP3:'+mydlna[1]
 
 
-def fnGetTristanHome():
+def fnGetOwnerHome():
 	try:
-		response = os.system('ping -c 1 -w1 wp8_tristancole > /dev/null 2>&1')
+		response = os.system('ping -c 1 -w1 '+config.get('Owner','PhoneIP')+' > /dev/null 2>&1')
 		if response == 0:
 			#yes in
 			bCloser.config(fg='green')

@@ -5,45 +5,49 @@ import json
 import time
 import os
 import shutil
+import ConfigParser
+
 
 # MAKE SURE WE is in the correct directory
 os.chdir('/home/pi/dashdisplay')
+config = ConfigParser.ConfigParser()
+config.read('eClock.cfg')
 
 
 def fnGetWeather():
-	data_timediff = 24*3600
+	data_timediff = int(config.get('Weather','Refresh'))*60
 	try:
 		data_timediff = int(time.time()) - int(os.path.getmtime('data_weather.txt'))
 	except:
-		data_timediff = 25*3600
+		data_timediff = int(config.get('Weather','Refresh'))*61
 	
 	try:
 		if os.path.isfile ('data_weather.txt'): shutil.copyfile ('data_weather.txt', 'data_weather.old.txt')
 		if os.path.isfile ('data_forcast.txt'): shutil.copyfile ('data_forcast.txt', 'data_forcast.old.txt')
-		if (data_timediff >= (1700)):
+		if (data_timediff >= (int(config.get('Weather','Refresh'))*60)):
 			#http://openweathermap.org/current#parameter
 			#Ashburton:2656977
 			#Downham Market:2651030
 			# Get Weather, check for name and get icon image
-			url_to_call = 'http://api.openweathermap.org/data/2.5/weather?id=2656977&appid=08b5e93e4e18f3bb67193ab5fa179abc&units=metric'
+			url_to_call = 'http://api.openweathermap.org/data/2.5/weather?id='+config.get('Weather','TownID')+'&appid='+config.get('Weather','appid')+'&units=metric'
 			response = urllib2.urlopen(url_to_call)
 			json_obj = json.load(response)
 			with open('data_weather.txt','w') as fp:
 				json.dump(json_obj, fp)
 			
-			if str(json_obj['name']) <> 'Ashburton':
+			if str(json_obj['name']) <> config.get('Weather','TownName'):
 				raise Exception("Incorrect Location")
 			time.sleep(1)
 			
 			fnGetWeatherIcon(json_obj['weather'][0]['icon'], 'weather')
 			
-			url_to_call = 'http://api.openweathermap.org/data/2.5/forecast?id=2656977&appid=08b5e93e4e18f3bb67193ab5fa179abc&units=metric'
+			url_to_call = 'http://api.openweathermap.org/data/2.5/forecast?id='+config.get('Weather','TownID')+'&appid='+config.get('Weather','appid')+'&units=metric'
 			response = urllib2.urlopen(url_to_call)
 			json_obj = json.load(response)
 			with open('data_forcast.txt','w') as fp:
 				json.dump(json_obj, fp)
 			
-			if str(json_obj['city']['name']) <> 'Ashburton':
+			if str(json_obj['city']['name']) <> config.get('Weather','TownName'):
 				raise Exception("Incorrect Forcast Location")
 			time.sleep(1)
 
@@ -52,13 +56,13 @@ def fnGetWeather():
 			fnGetWeatherIcon(json_obj['list'][2]['weather'][0]['icon'], 'forcast3')
 			fnGetWeatherIcon(json_obj['list'][3]['weather'][0]['icon'], 'forcast4')
 			fnGetWeatherIcon(json_obj['list'][4]['weather'][0]['icon'], 'forcast5')
-
-
+	
 	
 	except Exception as z:
 		print 'Error:fnGetWeather', z
 		if os.path.isfile ('data_weather.old.txt'): shutil.copyfile('data_weather.old.txt','data_weather.txt') 
 		if os.path.isfile ('data_forcast.old.txt'): shutil.copyfile('data_forcast.old.txt','data_forcast.txt') 
+
 
 
 def fnGetWeatherIcon(value,target):
@@ -75,16 +79,16 @@ def fnGetWeatherIcon(value,target):
 
 
 def fnGetDlna():
-	data_timediff = 24*3600
+	data_timediff = int(config.get('DLNA','Refresh'))*60
 	try:
 		data_timediff = int(time.time()) - int(os.path.getmtime('data_dlna.txt'))
 	except:
-		data_timediff = 25*3600
+		data_timediff = int(config.get('DLNA','Refresh'))*61
 	
 	try:
 		if os.path.isfile ('data_dlna.txt'): shutil.copyfile ('data_dlna.txt', 'data_dlna.old.txt')
-		if (data_timediff >= (24*3600)):
-			url_to_call='http://localhost:8200/'
+		if (data_timediff >= (int(config.get('DLNA','Refresh'))*60)):
+			url_to_call='http://'+config.get('DLNA','url')+'/'
 			response = urllib2.urlopen(url_to_call)
 			response_data = response.read()
 			count_video = response_data.index("Video")
