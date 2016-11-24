@@ -17,7 +17,10 @@ config.read('eClock.cfg')
 def fnGetWeather():
 	data_timediff = int(config.get('Weather','Refresh'))*60
 	try:
-		data_timediff = int(time.time()) - int(os.path.getmtime('data_weather.txt'))
+		with open('data_weather.txt') as fp:
+			json_obj = json.load(fp)
+		data_timediff = int(time.time()) - int(json_obj['dt'])
+
 	except:
 		data_timediff = int(config.get('Weather','Refresh'))*61
 	
@@ -101,11 +104,12 @@ def fnGetDlna():
 			value_audio = response_data[count_audio:count_audioe]
 			value_audio = value_audio.replace('Audio files</td><td>','')
 			value_audio = value_audio.replace('</td>','')
+			value_updated = int(time.time())
 			
 			if int(value_audio) <= 0:
 				raise Exception("No Audio??")
 			
-			data = {'audio':value_audio, 'video':value_video}
+			data = {'audio':value_audio, 'video':value_video, 'updated':value_updated}
 			with open('data_dlna.txt','w') as fp:
 				json.dump(data, fp)
 	
