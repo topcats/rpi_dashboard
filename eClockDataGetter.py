@@ -6,12 +6,27 @@ import time
 import os
 import shutil
 import ConfigParser
+from O365 import *
+from Crypto.Cipher import AES
 
 
 # MAKE SURE WE is in the correct directory
 os.chdir('/home/pi/dashdisplay')
 config = ConfigParser.ConfigParser()
 config.read('eClock.cfg')
+
+def getserial():
+    """Extract serial from cpuinfo file"""
+    cpuserial = "0000000000000000"
+    try:
+        gsfile = open('/proc/cpuinfo', 'r')
+        for line in gsfile:
+            if line[0:6] == 'Serial':
+                cpuserial = line[10:26]
+        gsfile.close()
+    except:
+        cpuserial = "ERROR000000000"
+    return cpuserial
 
 
 def fnGetWeather():
@@ -120,8 +135,38 @@ def fnGetDlna():
 
 
 
+def fnGetO365Calendar():
+	data_timediff = int(config.get('Office365','Refresh'))*60
+	try:
+		data_timediff = int(time.time()) - int(os.path.getmtime('data_o365calendar.txt'))
+	except:
+		data_timediff = int(config.get('Office365','Refresh'))*61
+	
+	try:
+		
+		if os.path.isfile ('data_o365calendar.txt'): shutil.copyfile ('data_o365calendar.txt', 'data_o365calendar.old.txt')
+		if (data_timediff >= (int(config.get('Office365','Refresh'))*60)):
+			
+			mypihostname = socket.gethostname().zfill(16)
+			mypiserial = getserial().zfill(16)
+			cipherobj = AES.new(mypihostname, AES.MODE_CFB, mypiserial)
+			o365_authenticiation = (config.get('Office365','email'), cipherobj.decrypt(config.get('Office365','password')))
+			o365_schedule = Schedule(o365_authenticiation)
+			o365_result = o365_schedule.getCalendars()
+
+
+
+			with open('data_o365calendar.txt','w') as fp:
+				json.dump(data, fp)
+	
+	except:
+		print 'Error:fnGetO365Calendar'
+		if os.path.isfile ('data_o365calendar.old.txt'):
+			shutil.copyfile('data_o365calendar.old.txt','data_o365calendar.txt') 
+
 
 
 #main program
 fnGetWeather()
 fnGetDlna()
+fnGetO365Calendar()
