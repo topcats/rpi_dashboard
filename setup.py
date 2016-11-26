@@ -10,11 +10,12 @@ configsave = ConfigParser.RawConfigParser()
 configsave.read('eClock.cfg')
 
 def dovalue(nsection, nkey, nprompt):
+    """Double checks the INI section is valid, creates if needed. Then prompts for value"""
     if configsave.has_section(nsection) == False:
         configsave.add_section(nsection)
     if configsave.has_option(nsection, nkey) == False:
         configsave.set(nsection, nkey, '')
-    newvalue = raw_input(nprompt+' ['+configsave.get(nsection, nkey)+'] ?') or configsave.get(nsection, nkey)
+    newvalue = raw_input(nprompt+' ['+configsave.get(nsection, nkey)+'] ? ') or configsave.get(nsection, nkey)
     configsave.set(nsection, nkey, newvalue)
 
 
@@ -23,13 +24,16 @@ def dovaluepwd(nsection, nkey, nprompt):
     mypihostname = socket.gethostname().zfill(16)
     mypiserial = getserial().zfill(16)
     cipherobj = AES.new(mypihostname, AES.MODE_CFB, mypiserial)
+    cipherobjb = AES.new(mypihostname, AES.MODE_CFB, mypiserial)
     if configsave.has_section(nsection) == False:
         configsave.add_section(nsection)
     if configsave.has_option(nsection, nkey) == False:
         configsave.set(nsection, nkey, '')
-    newvalue = raw_input(nprompt+' ['+cipherobj.decrypt(configsave.get(nsection, nkey))+'] ?') or cipherobj.decrypt(configsave.get(nsection, nkey))
-    configsave.set(nsection, nkey, cipherobj.encrypt(newvalue))
-
+        oldvalue = ''
+    else:
+        oldvalue = cipherobj.decrypt(configsave.get(nsection, nkey))
+    newvalue = raw_input(nprompt+' [########] ? ') or oldvalue
+    configsave.set(nsection, nkey, cipherobjb.encrypt(newvalue))
 
 
 def getserial():
