@@ -161,7 +161,7 @@ def fnGetO365Calendar():
             timethismorning = time.gmtime(timethismorning)
             timethismorning = time.strftime(Calendar.timemorning_string, timethismorning)
             json_outs = {}
-            json_outs['dt'] = time.time()
+            json_outs['dt'] = int(time.time())
             o365_bookings = []
 
             for o365_cal in o365_schedule.calendars:
