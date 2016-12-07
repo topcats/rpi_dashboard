@@ -42,8 +42,10 @@ def fnGetWeather():
         data_timediff = int(config.get('Weather', 'Refresh'))*61
     
     try:
-        if os.path.isfile('data_weather.txt'): shutil.copyfile('data_weather.txt', 'data_weather.old.txt')
-        if os.path.isfile('data_forcast.txt'): shutil.copyfile('data_forcast.txt', 'data_forcast.old.txt')
+        if os.path.isfile('data_weather.txt'):
+            shutil.copyfile('data_weather.txt', 'data_weather.old.txt')
+        if os.path.isfile('data_forcast.txt'):
+            shutil.copyfile('data_forcast.txt', 'data_forcast.old.txt')
         if data_timediff >= (int(config.get('Weather', 'Refresh'))*60):
             #http://openweathermap.org/current#parameter
             #Ashburton:2656977
@@ -79,15 +81,18 @@ def fnGetWeather():
     
     except Exception as z:
         print 'Error:fnGetWeather', z
-        if os.path.isfile('data_weather.old.txt'): shutil.copyfile('data_weather.old.txt', 'data_weather.txt')
-        if os.path.isfile('data_forcast.old.txt'): shutil.copyfile('data_forcast.old.txt', 'data_forcast.txt')
+        if os.path.isfile('data_weather.old.txt'):
+            shutil.copyfile('data_weather.old.txt', 'data_weather.txt')
+        if os.path.isfile('data_forcast.old.txt'):
+            shutil.copyfile('data_forcast.old.txt', 'data_forcast.txt')
 
 
 
 def fnGetWeatherIcon(value, target):
     """Downloads Weather Icon image file"""
     try:
-        if os.path.isfile('icon_'+target+'.png'): shutil.copyfile('icon_'+target+'.png', 'icon_'+target+'.old.png')
+        if os.path.isfile('icon_'+target+'.png'):
+            shutil.copyfile('icon_'+target+'.png', 'icon_'+target+'.old.png')
         
         weatherimage_url = 'http://openweathermap.org/img/w/'+str(value)+'.png'
         urllib.urlretrieve(weatherimage_url, 'icon_'+target+'.png')
@@ -95,7 +100,8 @@ def fnGetWeatherIcon(value, target):
     
     except Exception as z:
         print 'Error:fnGetWeatherIcon', z
-        if os.path.isfile('icon_'+target+'.old.png'): shutil.copyfile('icon_'+target+'.old.png', 'icon_'+target+'.png')
+        if os.path.isfile('icon_'+target+'.old.png'):
+            shutil.copyfile('icon_'+target+'.old.png', 'icon_'+target+'.png')
 
 
 def fnGetDlna():
@@ -107,7 +113,8 @@ def fnGetDlna():
         data_timediff = int(config.get('DLNA', 'Refresh'))*61
     
     try:
-        if os.path.isfile('data_dlna.txt'): shutil.copyfile('data_dlna.txt', 'data_dlna.old.txt')
+        if os.path.isfile('data_dlna.txt'):
+            shutil.copyfile('data_dlna.txt', 'data_dlna.old.txt')
         if data_timediff >= (int(config.get('DLNA', 'Refresh'))*60):
             url_to_call = 'http://'+config.get('DLNA', 'url')+'/'
             response = urllib2.urlopen(url_to_call)
@@ -133,12 +140,13 @@ def fnGetDlna():
     
     except:
         print 'Error:fnGetDlna'
-        if os.path.isfile('data_dlna.old.txt'): shutil.copyfile('data_dlna.old.txt', 'data_dlna.txt')
+        if os.path.isfile('data_dlna.old.txt'):
+            shutil.copyfile('data_dlna.old.txt', 'data_dlna.txt')
 
 
 
 def fnGetO365Calendar():
-    """Get Office365 Calendar information"""
+    '''Get Office365 Calendar information'''
     data_timediff = int(config.get('Office365', 'Refresh'))*60
     try:
         with open('data_o365calendar.txt') as fp:
@@ -148,8 +156,9 @@ def fnGetO365Calendar():
         data_timediff = int(config.get('Office365', 'Refresh'))*61
     
     try:
-        if os.path.isfile('data_o365calendar.txt'): shutil.copyfile('data_o365calendar.txt', 'data_o365calendar.old.txt')
-        if (data_timediff >= (int(config.get('Office365', 'Refresh'))*60)):
+        if os.path.isfile('data_o365calendar.txt'):
+            shutil.copyfile('data_o365calendar.txt', 'data_o365calendar.old.txt')
+        if data_timediff >= (int(config.get('Office365', 'Refresh'))*60):
             
             mypihostname = socket.gethostname().zfill(16)
             mypiserial = getserial().zfill(16)
@@ -167,7 +176,9 @@ def fnGetO365Calendar():
             for o365_cal in o365_schedule.calendars:
                 o365_result = o365_cal.getEvents(timethismorning)
                 for o365_event in o365_cal.events:
-                    o365_bookings.append(o365_event.fullcalendarsaveJson())
+                    o365_bookings.append(fnGetO365Calendar_processcategory(o365_event.fullcalendarsavejson()))
+
+            o365_bookings = sorted(o365_bookings, key = lambda x: (x['Start'], x['End']))
             json_outs[config.get('Office365', 'email')] = o365_bookings
 
             with open('data_o365calendar.txt', 'w') as outs:
@@ -175,7 +186,27 @@ def fnGetO365Calendar():
     
     except:
         print 'Error:fnGetO365Calendar'
-        if os.path.isfile('data_o365calendar.old.txt'): shutil.copyfile('data_o365calendar.old.txt', 'data_o365calendar.txt')
+        if os.path.isfile('data_o365calendar.old.txt'):
+            shutil.copyfile('data_o365calendar.old.txt', 'data_o365calendar.txt')
+
+
+def fnGetO365Calendar_processcategory(calitem):
+    '''Merge Office365 Calendar Category Information'''
+    calcols = CatColors()
+    with open('data_o365mastercategorylist.txt') as fp:
+        json_objcat = json.load(fp)
+    officecategory = Category(json_objcat)
+
+    newcategories = {}
+    for catitem in calitem['Categories']:
+        newcategoriesitem = {}
+        catcolitem = calcols.get_item_fromid(officecategory.get_colorid_fromname(catitem))
+        newcategoriesitem['colorid'] = catcolitem.colorid
+        newcategoriesitem['hex'] = catcolitem.hex
+        newcategories[catitem] = newcategoriesitem
+
+    calitem['Categories'] = newcategories
+    return calitem
 
 
 
