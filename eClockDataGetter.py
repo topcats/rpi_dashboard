@@ -174,7 +174,7 @@ def fnGetO365Calendar():
             o365_bookings = []
 
             for o365_cal in o365_schedule.calendars:
-                o365_result = o365_cal.getEvents(timethismorning)
+                o365_result = o365_cal.getEvents(timethismorning, '', 30)
                 for o365_event in o365_cal.events:
                     o365_bookings.append(fnGetO365Calendar_processcategory(o365_event.fullcalendarsavejson()))
 
@@ -183,7 +183,7 @@ def fnGetO365Calendar():
 
             with open('data_o365calendar.txt', 'w') as outs:
                 json.dump(json_outs, outs)
-    
+        
     except:
         print 'Error:fnGetO365Calendar'
         if os.path.isfile('data_o365calendar.old.txt'):
