@@ -13,6 +13,7 @@ A Dashboard for Raspberry PI Module 3 with the Raspberry 7" Touch Screen
 * Checks to see if Owner is home (Pings mobile phone)
 * Gets Owner's Calendar Information from Office365
 * Changes Screen colour and display brightness dependant on Time of Daytime
+* Interacts with Local Z-Wave Setup to have a small selection of actions
 
 ## Data Storage
 * Saves data to JSON files so does not flood online services, called `data_*.txt`

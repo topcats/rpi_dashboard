@@ -67,25 +67,30 @@ print 'Weather:'
 dovalue('Weather', 'appid', 'App ID')
 dovalue('Weather', 'TownID', 'Town ID')
 dovalue('Weather', 'TownName', 'Town Name')
-dovalue('Weather', 'Refresh', 'Refresh interval (minutes)')
+dovalue('Weather', 'Refresh', 'Refresh interval (minutes) (0 will disable)')
 
 #DLNA
 print 'DLNA'
 dovalue('DLNA', 'url', 'MiniDLNA Web Address')
-dovalue('DLNA', 'Refresh', 'Refresh interval (minutes)')
+dovalue('DLNA', 'Refresh', 'Refresh interval (minutes) (0 will disable)')
 
 #User Stuff
 print 'Owner'
 dovalue('Owner', 'PhoneIP', 'Phone IP Address')
-dovalue('Owner', 'CheckInterval', 'Check interval (seconds)')
-
+dovalue('Owner', 'CheckInterval', 'Check interval (seconds) (0 will disable)')
 
 #Office 365
 print 'Office 365'
 dovalue('Office365', 'email', 'Email Address')
 dovaluepwd('Office365', 'password', 'Password')
-dovalue('Office365', 'Refresh', 'Refresh interval (minutes)')
+dovalue('Office365', 'Refresh', 'Refresh interval (minutes) (0 will disable)')
 
+#Z-Wave
+print 'Z-Wave'
+dovalue('ZWave', 'enabled', 'Z-Wave Control Enabled (0 will disable)')
+dovalue('ZWave', 'url', 'Automation API Base URL Address')
+dovalue('ZWave', 'username', 'Username')
+dovaluepwd('ZWave', 'password', 'Password')
 
 
 #Save it
