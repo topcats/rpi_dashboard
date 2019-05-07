@@ -33,6 +33,7 @@ sudo pip install requests
 sudo pip install pycrypto
 ```
 * Install `O365` Python Library, using custom version from [Github (topcats/python-o365)](https://github.com/topcats/python-o365)
-* run `setup.py` to create config file
-* read [Backlight Setup manual](BacklightControlNotes.md)
-* read [Auto run manual](AutorunNotes.md)
+* Install `zWaveAPI` Python Library, using custom version from [Github (topcats/raspberry-zwave-python)](https://github.com/topcats/raspberry-zwave-python)
+* Run `setup.py` to create config file
+* Read [Backlight Setup manual](BacklightControlNotes.md)
+* Read [Auto run manual](AutorunNotes.md)
