@@ -23,6 +23,10 @@ A Dashboard for Raspberry PI Module 3 with the Raspberry 7" Touch Screen
 
 ## System Setup
 * Register with [OpenWeatherMap](http://www.openweathermap.org/)
+* Install system requirements
+```
+sudo apt-get install python-pygame python-pil python-imaging-tk
+```
 * Install Python requirements
 ```
 sudo pip install requests
