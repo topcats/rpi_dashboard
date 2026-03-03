@@ -1,22 +1,45 @@
-# Auto Run Setup
+# eClock Dashboard Display - Auto Run Setup
 
-## Data Getter
+## Data Getters
+
 The Data getter is best setup to run on a schedule using cron tab
+
 ```bash
 $> crontab -e
 ```
-add the line below, to run the collection tool every 15 mintues
+
+add the lines below;
+the collection tool will run every 15 minutes
+and then a daily collection tool once a day at 4am
+
 ```bash
-*/15 * * * * python /home/pi/dashdisplay/eClockDataGetter.py
+*/15 * * * * python3 /home/pi/dashdisplay/eClockDataGetter.py
+0 4 * * 1 python3 /home/pi/dashdisplay/eDailyDataGetter.py
 ```
 
-## Dash Display
+## RPI Display - Auto Run Service Setup
+
+The Display can be setup to run automatically
+
+```bash
+sudo cp edisplay.service /lib/systemd/system/
+sudo chmod 644 /lib/systemd/system/edisplay.service
+chmod +x /home/pi/dashdisplay/eDisplay.py
+sudo systemctl daemon-reload
+sudo systemctl enable edisplay.service
+sudo systemctl start edisplay.service
+```
+
+## RPI Display - Old Method
+
 ```bash
 cd ~
 cd .config/lxsession/LXDE-pi/
 nano autostart
 ```
+
 Add the line below BEFORE the @xscreensaver
+
 ```bash
 @/usr/bin/python /home/pi/dashdisplay/eClock.py
 ```
