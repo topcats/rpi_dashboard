@@ -1,4 +1,4 @@
-# eClock Dashboard Display - Auto Run Setup
+# Raspberry PI Dash Display - Auto Run Setup
 
 ## Data Getters
 
@@ -28,18 +28,4 @@ chmod +x /home/pi/dashdisplay/eDisplay.py
 sudo systemctl daemon-reload
 sudo systemctl enable edisplay.service
 sudo systemctl start edisplay.service
-```
-
-## RPI Display - Old Method
-
-```bash
-cd ~
-cd .config/lxsession/LXDE-pi/
-nano autostart
-```
-
-Add the line below BEFORE the @xscreensaver
-
-```bash
-@/usr/bin/python /home/pi/dashdisplay/eClock.py
 ```

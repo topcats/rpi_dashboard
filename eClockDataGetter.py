@@ -1,237 +1,404 @@
-# -*- coding: utf-8 -*-
-import urllib2
-import urllib
-import json
-import time
+#!/usr/bin/python3
+# rpi_dashboard
+# =================
+# Data Getter - 15 Minute runner
+
+import sys
+if sys.version_info[0] < 3:
+    raise Exception("Python 3 or a more recent version is required.")
+
 import os
 import shutil
-import ConfigParser
-import socket
-from O365 import *
-from Crypto.Cipher import AES
+import glob
+import json
+import time
+import datetime as dt
 
 
 # MAKE SURE WE is in the correct directory
 os.chdir('/home/pi/dashdisplay')
-config = ConfigParser.ConfigParser()
-config.read('eClock.cfg')
 
-def getserial():
-    """Extract serial from cpuinfo file"""
-    cpuserial = "0000000000000000"
+
+def fnGetLastUpdated(datafile, refreshdefault):
+    """ Determine Last Updated from Json file
+    :param datafile: Datafile to check
+    :param refreshdefault: Default refresh interval
+    """
+    data_timediff = int(refreshdefault)*61
     try:
-        gsfile = open('/proc/cpuinfo', 'r')
-        for line in gsfile:
-            if line[0:6] == 'Serial':
-                cpuserial = line[10:26]
-        gsfile.close()
-    except:
-        cpuserial = "ERROR000000000"
-    return cpuserial
+        if os.path.isfile(datafile+'.json'):
+            with open(datafile+'.json') as fp:
+                json_obj = json.load(fp)
+            data_timediff = int(time.time()) - int(json_obj['dt'])
+    except Exception as ex:
+        print("fnGetLastUpdated("+datafile+") WARN: No Source Current)", ex)
+        data_timediff = int(refreshdefault)*61
+    return data_timediff/60
+
 
 
 def fnGetWeather():
-    """Get Weather Infomation from OpenWeatherMap"""
-    if int(config.get('Weather', 'Refresh')) == 0:
-        if os.path.isfile('data_weather.txt'):
-            shutil.copyfile('data_weather.txt', 'data_weather.old.txt')
-            os.remove('data_weather.txt')
-        if os.path.isfile('data_forcast.txt'):
-            shutil.copyfile('data_forcast.txt', 'data_forcast.old.txt')
-            os.remove('data_forcast.txt')
-    
+    """ Get Weather Information """
+
+    from infosource.app_weather import app_weather
+
+    # Open Config
+    with open('conf/weather.json') as fp:
+        json_config = json.load(fp)
+
+    if int(json_config['refresh']) == 0:
+        # Clear all Downloaded Data and Icon Files
+        for filePath in glob.glob(app_weather.datapath + 'current_*.json'):
+            try:
+                os.remove(filePath)
+            except:
+                print("fnGetWeather(Error while deleting file)", filePath)
+        for filePath in glob.glob(app_weather.datapath + 'forecast_*.json'):
+            try:
+                os.remove(filePath)
+            except:
+                print("fnGetWeather(Error while deleting file)", filePath)
+        for filePath in glob.glob(app_weather.datapath + 'icon_*.png'):
+            try:
+                os.remove(filePath)
+            except:
+                print("fnGetWeather(Error while deleting file)", filePath)
+
     else:
-        try:
-            with open('data_weather.txt') as fp:
-                json_obj = json.load(fp)
-            data_timediff = int(time.time()) - int(json_obj['dt'])
-
-        except:
-            data_timediff = int(config.get('Weather', 'Refresh'))*61
-    
-        try:
-            if os.path.isfile('data_weather.txt'):
-                shutil.copyfile('data_weather.txt', 'data_weather.old.txt')
-            if os.path.isfile('data_forcast.txt'):
-                shutil.copyfile('data_forcast.txt', 'data_forcast.old.txt')
-            if data_timediff >= (int(config.get('Weather', 'Refresh'))*60):
-                #http://openweathermap.org/current#parameter
-                #Ashburton:2656977
-                #Downham Market:2651030
+        weatheraction = app_weather(config=json_config)
+        # Loop round all locations and get data
+        for weatherlocation in json_config["locations"]:
+            data_timediff = fnGetLastUpdated(app_weather.datapath + 'current_' + str(weatherlocation['townid']), json_config['refresh'])
+            if data_timediff >= int(json_config['refresh']):
                 # Get Weather, check for name and get icon image
-                url_to_call = 'http://api.openweathermap.org/data/2.5/weather?id='+config.get('Weather', 'TownID')+'&appid='+config.get('Weather', 'appid')+'&units=metric'
-                response = urllib2.urlopen(url_to_call)
-                json_obj = json.load(response)
-                with open('data_weather.txt', 'w') as fp:
-                    json.dump(json_obj, fp)
-                
-                if str(json_obj['name']) <> config.get('Weather', 'TownName'):
-                    raise Exception("Incorrect Location")
-                time.sleep(1)
-                
-                fnGetWeatherIcon(json_obj['weather'][0]['icon'], 'weather')
-                
-                url_to_call = 'http://api.openweathermap.org/data/2.5/forecast?id='+config.get('Weather', 'TownID')+'&appid='+config.get('Weather', 'appid')+'&units=metric'
-                response = urllib2.urlopen(url_to_call)
-                json_obj = json.load(response)
-                with open('data_forcast.txt', 'w') as fp:
-                    json.dump(json_obj, fp)
-                
-                if str(json_obj['city']['name']) <> config.get('Weather', 'TownName'):
-                    raise Exception("Incorrect Forcast Location")
-                time.sleep(1)
 
-                fnGetWeatherIcon(json_obj['list'][0]['weather'][0]['icon'], 'forcast1')
-                fnGetWeatherIcon(json_obj['list'][1]['weather'][0]['icon'], 'forcast2')
-                fnGetWeatherIcon(json_obj['list'][2]['weather'][0]['icon'], 'forcast3')
-                fnGetWeatherIcon(json_obj['list'][3]['weather'][0]['icon'], 'forcast4')
-                fnGetWeatherIcon(json_obj['list'][4]['weather'][0]['icon'], 'forcast5')
-        
-        except Exception as z:
-            print 'Error:fnGetWeather', z
-            if os.path.isfile('data_weather.old.txt'):
-                shutil.copyfile('data_weather.old.txt', 'data_weather.txt')
-            if os.path.isfile('data_forcast.old.txt'):
-                shutil.copyfile('data_forcast.old.txt', 'data_forcast.txt')
+                # - Current
+                json_obj = weatheraction.getcurrent(weatherlocation['townid'])
+                weatheraction.savedata('current_' + str(weatherlocation['townid']), json_obj)
+
+                # - Current Icon
+                iconpath = weatheraction.downloadicon(json_obj['weather'][0]['icon'])
+                if weatherlocation['townid'] == 2650311 and iconpath is not None and os.path.isfile(iconpath):
+                    shutil.copyfile(iconpath, app_weather.datapath + 'icon_weather.png')
+
+                # - Forecast
+                json_obj = weatheraction.getforecast(weatherlocation['townid'])
+                weatheraction.savedata('forecast_' + str(weatherlocation['townid']), json_obj)
+
+                # - Get Active Weather Icons
+                for i in range(0, 20):
+                    iconpath = weatheraction.downloadicon(json_obj['list'][i]['weather'][0]['icon'])
+                    if weatherlocation['townid'] == 2650311 and iconpath is not None and os.path.isfile(iconpath) and i < 5:
+                        shutil.copyfile(iconpath, app_weather.datapath + 'icon_forecast' + str(i+1) + '.png')
+
+            else:
+                print("fnGetWeather("+str(weatherlocation['townid'])+") Info: Not needed")
 
 
-def fnGetWeatherIcon(value, target):
-    """Downloads Weather Icon image file"""
-    try:
-        if os.path.isfile('icon_'+target+'.png'):
-            shutil.copyfile('icon_'+target+'.png', 'icon_'+target+'.old.png')
-        
-        weatherimage_url = 'http://openweathermap.org/img/w/'+str(value)+'.png'
-        urllib.urlretrieve(weatherimage_url, 'icon_'+target+'.png')
-        time.sleep(1)
-    
-    except Exception as z:
-        print 'Error:fnGetWeatherIcon', z
-        if os.path.isfile('icon_'+target+'.old.png'):
-            shutil.copyfile('icon_'+target+'.old.png', 'icon_'+target+'.png')
+def fnGetTide():
+    """ Get Tide Information """
+
+    from infosource.app_tide import app_tide
+
+    # Open Config
+    with open('conf/tide.json') as fp:
+        json_config = json.load(fp)
+
+    if int(json_config['refresh']) == 0:
+        # Clear all Downloaded Data and Icon Files
+        for filePath in glob.glob(app_tide.datapath + '*.json'):
+            try:
+                os.remove(filePath)
+            except:
+                print("fnGetTide(Error while deleting file)", filePath)
+
+    else:
+        # Loop round all locations and get data
+        tideaction = app_tide(config=json_config)
+        for tidelocation in json_config["locations"]:
+            data_timediff = fnGetLastUpdated(app_tide.datapath + str(tidelocation['portid']), json_config['refresh'])
+            if data_timediff >= int(json_config['refresh']):
+                # Get Forecast
+                json_obj = tideaction.getforecast(tidelocation['portid'])
+                json_obj['dt'] = int(time.time())
+                # Save Info
+                tideaction.savedata(tidelocation['portid'], json_obj)
+            else:
+                print("fnGetTide("+tidelocation['portid']+") Info: Not needed")
 
 
 def fnGetDlna():
-    """Get miniDLNA Information"""
-    if int(config.get('DLNA', 'Refresh')) == 0:
-        if os.path.isfile('data_dlna.txt'):
-            shutil.copyfile('data_dlna.txt', 'data_dlna.old.txt')
-            os.remove('data_dlna.txt')
-    
+    """ Get DLNA Information """
+    # No longer Used
+
+    from infosource.app_dlna import app_dlna
+    _data_file = 'data/dlna_stats.json'
+    _data_fileold = 'data/dlna_stats.old.json'
+
+    # Open Config
+    with open('conf/dlna.json') as fp:
+        json_config = json.load(fp)
+
+    # Load Existing
+    try:
+        with open(_data_file) as fp:
+            json_data = json.load(fp)
+        data_timediff = int(time.time()) - int(json_data['updated'])
+    except:
+        json_data = {"audio": 0, "video": 0, "updated": 0}
+        data_timediff = int(json_config['refresh'])*61
+    if not 'audio' in json_data:
+        json_data['audio'] = 0
+    if not 'video' in json_data:
+        json_data['video'] = 0
+    if not 'photo' in json_data:
+        json_data['photo'] = 0
+
+    if int(json_config['refresh']) == 0 or int(json_config['type']) == 0:
+        # Turn off update (delete data)
+        if os.path.isfile(_data_file):
+            os.remove(_data_file)
+        if os.path.isfile(_data_fileold):
+            os.remove(_data_fileold)
+    elif data_timediff >= (int(json_config['refresh'])*60):
+        # Get Data
+        dataresponse = app_dlna(config=json_config).process()
+        if int(json_data['audio']) != int(dataresponse['audio']) or int(json_data['video']) != int(dataresponse['video']) or int(json_data['photo']) != int(dataresponse['photo']):
+            if os.path.isfile(_data_file):
+                shutil.copyfile(_data_file, _data_fileold)
+            with open(_data_file, 'w') as outs:
+                json.dump(dataresponse, outs)
+        else:
+            print("fnGetDlna(): No Change")
     else:
-        try:
-            data_timediff = int(time.time()) - int(os.path.getmtime('data_dlna.txt'))
-        except:
-            data_timediff = int(config.get('DLNA', 'Refresh'))*61
-        
-        try:
-            if os.path.isfile('data_dlna.txt'):
-                shutil.copyfile('data_dlna.txt', 'data_dlna.old.txt')
-            if data_timediff >= (int(config.get('DLNA', 'Refresh'))*60):
-                url_to_call = 'http://'+config.get('DLNA', 'url')+'/'
-                response = urllib2.urlopen(url_to_call)
-                response_data = response.read()
-                count_video = response_data.index("Video")
-                count_videoe = response_data.index('</tr>', count_video)
-                value_video = response_data[count_video:count_videoe]
-                value_video = value_video.replace('Video files</td><td>', '')
-                value_video = value_video.replace('</td>', '')
-                count_audio = response_data.index("Audio")
-                count_audioe = response_data.index('</tr>', count_audio)
-                value_audio = response_data[count_audio:count_audioe]
-                value_audio = value_audio.replace('Audio files</td><td>', '')
-                value_audio = value_audio.replace('</td>', '')
-                value_updated = int(time.time())
-                
-                if int(value_audio) <= 0:
-                    raise Exception("No Audio??")
-                
-                data = {'audio':value_audio, 'video':value_video, 'updated':value_updated}
-                with open('data_dlna.txt', 'w') as fp:
-                    json.dump(data, fp)
-        
-        except:
-            print 'Error:fnGetDlna'
-            if os.path.isfile('data_dlna.old.txt'):
-                shutil.copyfile('data_dlna.old.txt', 'data_dlna.txt')
+        print("fnGetDlna(): Not needed")
 
 
 def fnGetO365Calendar():
-    '''Get Office365 Calendar information'''
-    if int(config.get('Office365', 'Refresh')) == 0:
-        if os.path.isfile('data_o365calendar.txt'):
-            shutil.copyfile('data_o365calendar.txt', 'data_o365calendar.old.txt')
-            os.remove('data_o365calendar.txt')
-    
+    """ Get Office365 Calendar information """
+    # VERY OLD NOT IN USE
+
+    from infosource.app_calendar import app_calendar
+
+    # Open Config
+    with open('conf/o365.json') as fp:
+        json_config = json.load(fp)
+
+    data_timediff = fnGetLastUpdated('data/o365_calendar.json', json_config['schedule']['refresh'])
+    if data_timediff >= int(json_config['schedule']['refresh']):
+        # Get Data
+        o365action = app_calendar(config=json_config)
+        with open('data/o365_calendar.json', 'w') as outs:
+            json.dump(o365action.process('schedule'), outs)
     else:
-        try:
-            with open('data_o365calendar.txt') as fp:
-                json_obj = json.load(fp)
-            data_timediff = int(time.time()) - int(json_obj['dt'])
-        except:
-            data_timediff = int(config.get('Office365', 'Refresh'))*61
-        
-        try:
-            if os.path.isfile('data_o365calendar.txt'):
-                shutil.copyfile('data_o365calendar.txt', 'data_o365calendar.old.txt')
-            if data_timediff >= (int(config.get('Office365', 'Refresh'))*60):
-                
-                mypihostname = socket.gethostname().zfill(16)
-                mypiserial = getserial().zfill(16)
-                cipherobj = AES.new(mypihostname, AES.MODE_CFB, mypiserial)
-                o365_authentication = (config.get('Office365', 'email'), cipherobj.decrypt(config.get('Office365', 'password')))
-                o365_schedule = Schedule(o365_authentication)
-                o365_result = o365_schedule.getCalendars()
-                timethismorning = time.time()
-                timethismorning = time.gmtime(timethismorning)
-                timethismorning = time.strftime(Calendar.timemorning_string, timethismorning)
-                timeendmorning = time.strptime(timethismorning, Calendar.time_string)
-                timeendmorning = int(time.strftime('%s', timeendmorning))
-                timeendmorning += 3600*24*200
-                timeendmorning = time.gmtime(timeendmorning)
-                timeendmorning = time.strftime(Calendar.time_string, timeendmorning)
-                json_outs = {}
-                json_outs['dt'] = int(time.time())
-                o365_bookings = []
-
-                for o365_cal in o365_schedule.calendars:
-                    o365_result = o365_cal.getEvents(timethismorning, timeendmorning, 100)
-                    for o365_event in o365_cal.events:
-                        o365_bookings.append(fnGetO365Calendar_processcategory(o365_event.fullcalendarsavejson()))
-
-                o365_bookings = sorted(o365_bookings, key = lambda x: (x['Start'], x['End']))
-                json_outs[config.get('Office365', 'email')] = o365_bookings
-
-                with open('data_o365calendar.txt', 'w') as outs:
-                    json.dump(json_outs, outs)
-            
-        except:
-            print 'Error:fnGetO365Calendar'
-            if os.path.isfile('data_o365calendar.old.txt'):
-                shutil.copyfile('data_o365calendar.old.txt', 'data_o365calendar.txt')
+        print("fnGetO365Calendar(): Not needed")
 
 
-def fnGetO365Calendar_processcategory(calitem):
-    '''Merge Office365 Calendar Category Information'''
-    calcols = CatColors()
-    with open('data_o365mastercategorylist.txt') as fp:
-        json_objcat = json.load(fp)
-    officecategory = Category(json_objcat)
+def fnGet0365CalendarHP():
+    """
+    Get Office365 Calendar information
+    
+    NB: Uses PHP!!
+    """
 
-    newcategories = {}
-    for catitem in calitem['Categories']:
-        newcategoriesitem = {}
-        catcolitem = calcols.get_item_fromid(officecategory.get_colorid_fromname(catitem))
-        newcategoriesitem['colorid'] = catcolitem.colorid
-        newcategoriesitem['hex'] = catcolitem.hex
-        newcategories[catitem] = newcategoriesitem
-
-    calitem['Categories'] = newcategories
-    return calitem
+    print("fnGet0365CalendarHP():")
+    os.system('php -f alternate/eClockDataGetterTC.php')
 
 
+def fnGetO365InfoPane():
+    """ Get Office365 Info Pane Calendar information """
 
-#main program
+    from infosource.app_calendar import app_calendar
+
+    # Open Config
+    with open('conf/o365.json') as fp:
+        json_config = json.load(fp)
+    with open('conf/site.json') as fp:
+        json_siteconfig = json.load(fp)
+
+    # Loop round all site locations and get data
+    o365action = app_calendar(config=json_config)
+    for json_site in json_siteconfig["locations"]:
+        time.sleep(1)
+        if json_site is None:
+            json_site = {}
+        if not 'calendar' in json_site:
+            json_site['calendar'] = {}
+        if json_site['calendar'] is None:
+            json_site['calendar'] = {}
+            json_site['calendar']['refresh'] = 0
+        if not 'refresh' in json_site['calendar']:
+            json_site['calendar']['refresh'] = 0
+        if not 'manual' in json_site['calendar']:
+            json_site['calendar']['manual'] = False
+
+        data_timediff = fnGetLastUpdated(app_calendar.datapath+'infopane_'+str(json_site["id"]), json_site['calendar']['refresh'])
+        if data_timediff >= int(json_site['calendar']['refresh']):
+            # Get Data
+            json_catsourcedata = {'MasterList':[]}
+            if json_site['calendar']['manual']:
+                # Manual process (from PHP lookup data)
+                try:
+                    # Manual Merge of Category List
+                    json_catsourcedata = o365action.loaddata('infopane_'+str(json_site["id"])+'_cat')
+                    o365action.set_categorylist(categorylist=json_catsourcedata['MasterList'])
+                    # Manual Process ingest
+                    json_sourcedata = o365action.loaddata('infopane_'+str(json_site["id"])+'s')
+                    json_output = o365action.processmanual(siteconfig=json_site['calendar'], sourcedata=json_sourcedata['value'])
+                    o365action.savedata('infopane_'+str(json_site["id"]), json_output)
+                except Exception as ex:
+                    print('Calendar Source file issue. '+str(json_site["id"]), ex)
+            else:
+                # Automatic process
+                json_output = o365action.process(siteconfig=json_site['calendar'])
+                o365action.savedata('infopane_'+str(json_site["id"]), json_output)
+
+
+def fnGetO365Menu():
+    '''Get Office365 Info Pane Dinner Menu information'''
+
+    from infosource.app_menu import app_menu
+
+    # Open Config
+    with open('conf/o365.json') as fp:
+        json_config = json.load(fp)
+    with open('conf/site.json') as fp:
+        json_siteconfig = json.load(fp)
+
+    # Loop round all site locations and get data
+    o365action = app_menu(config=json_config)
+    for json_site in json_siteconfig["locations"]:
+        time.sleep(1)
+        if json_site is None:
+            json_site = {}
+        if not 'menu' in json_site:
+            json_site['menu'] = {}
+        if json_site['menu'] is None:
+            json_site['menu'] = {}
+            json_site['menu']['refresh'] = 0
+        if not 'refresh' in json_site['menu']:
+            json_site['menu']['refresh'] = 0
+        if not 'allowedit' in json_site['menu']:
+            json_site['menu']['allowedit'] = False
+
+        data_timediff = fnGetLastUpdated(app_menu.datapath+'menu_'+str(json_site["id"]), json_site['menu']['refresh'])
+        if data_timediff >= int(json_site['menu']['refresh']):
+            # Get Data
+            json_menu = o365action.process(siteconfig=json_site['menu'])
+            o365action.savedata('menu_'+json_site["id"], json_menu)
+            # Get Options Data
+            json_menuoptions = o365action.getEditOptions(siteconfig=json_site['menu'])
+            o365action.savedata('options_'+json_site["id"], json_menuoptions)
+            o365action.getRecipeOptions(json_site["id"], json_menuoptions['option'])
+        else:
+            print("fnGetO365Menu("+str(json_site['id'])+") Info: Not needed")
+
+
+def fnGetO365Task():
+    """Get Office365 Info Pane Tasks information"""
+
+    from infosource.app_tasks import app_tasks
+
+    # Open Config
+    with open('conf/o365.json') as fp:
+        json_config = json.load(fp)
+    with open('conf/site.json') as fp:
+        json_siteconfig = json.load(fp)
+
+    # Loop round all site locations and get data
+    o365action = app_tasks(config=json_config)
+    for json_site in json_siteconfig["locations"]:
+        time.sleep(1)
+        if json_site is None:
+            json_site = {}
+        if not 'tasks' in json_site:
+            json_site['tasks'] = {}
+        if json_site['tasks'] is None:
+            json_site['tasks'] = {}
+            json_site['tasks']['refresh'] = 0
+        if not 'refresh' in json_site['tasks']:
+            json_site['tasks']['refresh'] = 0
+        if not 'manual' in json_site['tasks']:
+            json_site['tasks']['manual'] = False
+
+        data_timediff = fnGetLastUpdated('data/o365_tasks_'+str(json_site["id"]), json_site['tasks']['refresh'])
+        if data_timediff >= int(json_site['tasks']['refresh']):
+            # Get Data
+            if json_site['tasks']['manual']:
+                try:
+                    with open('data/o365_tasks_'+json_site["id"]+'s.json') as fp:
+                        json_sourcedata = json.load(fp)
+                    json_output = o365action.processmanual(siteconfig=json_site['tasks'], sourcedata=json_sourcedata['value'])
+                    with open('data/o365_tasks_'+json_site["id"]+'.json', 'w') as outs:
+                        json.dump(json_output, outs)
+                except Exception as ex:
+                    print('Tasks Source file issue. '+json_site["id"], ex)
+            else:
+                json_output = o365action.process(siteconfig=json_site['tasks'])
+                with open('data/o365_tasks_'+json_site["id"]+'.json', 'w') as outs:
+                    json.dump(json_output, outs)
+        else:
+            print("fnGetO365Task("+str(json_site['id'])+") Info: Not needed")
+
+
+def fnGetO365Photo():
+    """ Get Office365 Photo Collage """
+
+    from infosource.app_photo import app_photo
+
+    # Open Config
+    with open('conf/o365.json') as fp:
+        json_config = json.load(fp)
+    with open('conf/site.json') as fp:
+        json_siteconfig = json.load(fp)
+
+    o365action = app_photo(config=json_config)
+    for json_site in json_siteconfig["locations"]:
+        time.sleep(1)
+        if json_site is None:
+            json_site = {}
+        if not 'photo' in json_site:
+            json_site['photo'] = {}
+        if json_site['photo'] is None:
+            json_site['photo'] = {}
+            json_site['photo']['refresh'] = 0
+        if not 'refresh' in json_site['photo']:
+            json_site['photo']['refresh'] = 0
+
+        data_timediff = fnGetLastUpdated('data/photo/photo_'+str(json_site["id"]), json_site['photo']['refresh'])
+        if data_timediff >= int(json_site['photo']['refresh']):
+            # Get Data
+            o365datajson = o365action.process(siteconfig=json_site['photo'], locationid=json_site["id"])
+            o365datajson['imagecollage'] = []
+            o365datajson['imagecollagevirt'] = []
+
+            if o365datajson['imagecount'] == 12:
+                o365action.makeCollage(siteconfig=json_site['photo'], locationid=json_site["id"], title=o365datajson['folder0name'], inputs={'photo_'+json_site["id"]+'_0.jpg','photo_'+json_site["id"]+'_1.jpg','photo_'+json_site["id"]+'_2.jpg'}, outputfile='image_'+json_site["id"]+'_0.png')
+                o365action.makeCollage(siteconfig=json_site['photo'], locationid=json_site["id"], title=o365datajson['folder1name'], inputs={'photo_'+json_site["id"]+'_3.jpg','photo_'+json_site["id"]+'_4.jpg','photo_'+json_site["id"]+'_5.jpg'}, outputfile='image_'+json_site["id"]+'_1.png')
+                o365action.makeCollage(siteconfig=json_site['photo'], locationid=json_site["id"], title=o365datajson['folder2name'], inputs={'photo_'+json_site["id"]+'_6.jpg','photo_'+json_site["id"]+'_7.jpg','photo_'+json_site["id"]+'_8.jpg'}, outputfile='image_'+json_site["id"]+'_2.png')
+                o365action.makeCollage(siteconfig=json_site['photo'], locationid=json_site["id"], title=o365datajson['folder3name'], inputs={'photo_'+json_site["id"]+'_9.jpg','photo_'+json_site["id"]+'_10.jpg','photo_'+json_site["id"]+'_11.jpg'}, outputfile='image_'+json_site["id"]+'_3.png')
+                o365datajson['imagecollage'] = ['image_'+json_site["id"]+'_0.png', 'image_'+json_site["id"]+'_1.png', 'image_'+json_site["id"]+'_2.png', 'image_'+json_site["id"]+'_3.png']
+                if 'v' in json_site['photo']:
+                    o365action.makeCollageVirt(siteconfig=json_site['photo'], locationid=json_site["id"], title=o365datajson['folder0name'], inputs={'photo_'+json_site["id"]+'_0.jpg','photo_'+json_site["id"]+'_1.jpg','photo_'+json_site["id"]+'_2.jpg'}, outputfile='image_'+json_site["id"]+'_v0.png')
+                    o365action.makeCollageVirt(siteconfig=json_site['photo'], locationid=json_site["id"], title=o365datajson['folder1name'], inputs={'photo_'+json_site["id"]+'_3.jpg','photo_'+json_site["id"]+'_4.jpg','photo_'+json_site["id"]+'_5.jpg'}, outputfile='image_'+json_site["id"]+'_v1.png')
+                    o365action.makeCollageVirt(siteconfig=json_site['photo'], locationid=json_site["id"], title=o365datajson['folder2name'], inputs={'photo_'+json_site["id"]+'_6.jpg','photo_'+json_site["id"]+'_7.jpg','photo_'+json_site["id"]+'_8.jpg'}, outputfile='image_'+json_site["id"]+'_v2.png')
+                    o365action.makeCollageVirt(siteconfig=json_site['photo'], locationid=json_site["id"], title=o365datajson['folder3name'], inputs={'photo_'+json_site["id"]+'_9.jpg','photo_'+json_site["id"]+'_10.jpg','photo_'+json_site["id"]+'_11.jpg'}, outputfile='image_'+json_site["id"]+'_v3.png')
+                    o365datajson['imagecollagevirt'] = ['image_'+json_site["id"]+'_v0.png', 'image_'+json_site["id"]+'_v1.png', 'image_'+json_site["id"]+'_v2.png', 'image_'+json_site["id"]+'_v3.png']
+            o365action.savedata('photo_'+str(json_site["id"]), o365datajson)
+        else:
+            print("fnGetO365Photo("+str(json_site['id'])+") Info: Not needed")
+
+
+
+
+#######################################
+# Main program
 fnGetWeather()
-fnGetDlna()
-fnGetO365Calendar()
+fnGetTide()
+# fnGetDlna()
+# fnGetO365Calendar()
+fnGet0365CalendarHP()
+fnGetO365InfoPane()
+fnGetO365Menu()
+# fnGetO365Task()
+fnGetO365Photo()

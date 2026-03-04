@@ -1,4 +1,4 @@
-# eClock Dashboard Display - Config Notes
+# Raspberry PI Dash Display - Config Notes
 
 `display.json` is used for all configuration details.
 
@@ -79,7 +79,17 @@ Configuration details for ZWave control, can be disabled.
     "enabled": true,
     "url": "http://localhost:8083/ZAutomation/api/v1/",
     "username": "admin",
-    "password": ""
+    "password": "",
+    "tag": "Dashboard",
+    "night": [],
+    "day": [],
+    "full": [
+        {
+            "room": 0,
+            "devices": [],
+            "sensors": []
+        }
+    ]
 }
 ```
 
@@ -92,5 +102,15 @@ Select which town (ID) is wanted
 ```json
 {
     "weather": 2650311
+}
+```
+
+## Calendar
+
+Select which location (site ID) to use for calendar information
+
+```json
+{
+    "location": 1
 }
 ```

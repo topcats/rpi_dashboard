@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+# rpi_dashboard
+# =================
+# Display Screen
+
 import sys
 if sys.version_info[0] < 3:
     raise Exception("Python 3 or a more recent version is required.")
@@ -86,7 +90,6 @@ def processSchedule():
         curbrightness = brightness
 
     # Snooze for 1 minute
-    # print("Style: {}, Brightness: {}".format(style, brightness))
     root.after(60000, processSchedule)
 
 

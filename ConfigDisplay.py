@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+# rpi_dashboard
+# =================
+# Display Configurator
+
 import sys
 if sys.version_info[0] < 3:
     raise Exception("Python 3 or a more recent version is required.")
@@ -117,6 +121,10 @@ else:
 #Set Weather Stuff
 print('Weather:')
 doValueInt('weather', None, 'Town ID')
+
+#Set Location Site Stuff
+print('Location:')
+doValueInt('location', None, 'Site ID')
 
 
 #Z-Wave
