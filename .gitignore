@@ -95,3 +95,9 @@ Thumbs.db
 data_*.txt
 icon_*.png
 eClock.cfg
+eClock*.cfg
+azuredetails.txt
+conf/*
+data/*
+util/zWaveApi3.py
+util/zWaveApi.py
