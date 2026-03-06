@@ -1,0 +1,34 @@
+{
+    "en": {
+        "Sky is clear": {
+            "id": 800,
+            "min": 0,
+            "max": 10,
+            "avr": 0
+        },
+        "Few clouds": {
+            "id": 801,
+            "min": 10,
+            "max": 25,
+            "avr": 20
+        },
+        "Scattered clouds": {
+            "id": 802,
+            "min": 25,
+            "max": 50,
+            "avr": 40
+        },
+        "Broken clouds": {
+            "id": 803,
+            "min": 50,
+            "max": 85,
+            "avr": 75
+        },
+        "Overcast clouds": {
+            "id": 804,
+            "min": 85,
+            "max": 1000,
+            "avr": 90
+        }
+    }
+}
