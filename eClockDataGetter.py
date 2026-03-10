@@ -260,13 +260,11 @@ def fnGetO365Menu():
     from infosource.app_menu import app_menu
 
     # Open Config
-    with open('conf/o365.json') as fp:
-        json_config = json.load(fp)
     with open('conf/site.json') as fp:
         json_siteconfig = json.load(fp)
 
     # Loop round all site locations and get data
-    o365action = app_menu(config=json_config)
+    o365actionmenu = app_menu()
     for json_site in json_siteconfig["locations"]:
         time.sleep(1)
         if json_site is None:
@@ -284,12 +282,12 @@ def fnGetO365Menu():
         data_timediff = fnGetLastUpdated(app_menu.datapath+'menu_'+str(json_site["id"]), json_site['menu']['refresh'])
         if data_timediff >= int(json_site['menu']['refresh']):
             # Get Data
-            json_menu = o365action.process(siteconfig=json_site['menu'])
-            o365action.savedata('menu_'+json_site["id"], json_menu)
+            json_menu = o365actionmenu.Process(sitemenuconfig=json_site['menu'])
+            o365actionmenu.SaveData('menu_'+json_site["id"], json_menu)
             # Get Options Data
-            json_menuoptions = o365action.getEditOptions(siteconfig=json_site['menu'])
-            o365action.savedata('options_'+json_site["id"], json_menuoptions)
-            o365action.getRecipeOptions(json_site["id"], json_menuoptions['option'])
+            json_menuoptions = o365actionmenu.GetEditOptions(sitemenuconfig=json_site['menu'])
+            o365actionmenu.SaveData('options_'+json_site["id"], json_menuoptions)
+            o365actionmenu.GetRecipeOptions(siteid=json_site["id"], menudata=json_menuoptions['option'])
         else:
             print("fnGetO365Menu("+str(json_site['id'])+") Info: Not needed")
 

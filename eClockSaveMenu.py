@@ -2,6 +2,10 @@
 # rpi_dashboard
 # =================
 # Data Update - Menu Changes
+# 1. Check for new menu item file
+# 2. If exists read in and update Excel
+# 3. Update local menu file
+# 4. Post to Teams Chat
 
 import sys
 if sys.version_info[0] < 3:
@@ -10,8 +14,6 @@ if sys.version_info[0] < 3:
 import os
 import json
 import time
-import datetime as dt
-
 
 # MAKE SURE WE is in the correct directory
 os.chdir('/home/pi/dashdisplay')
@@ -21,16 +23,18 @@ from infosource.app_menu import *
 
 
 def fnSaveO365Menu():
-    '''Save Office365 Info Pane Dinner Menu information'''
+    """
+    Save Office365 Info Pane Dinner Menu information
+
+    Cycles round all locations and looks for updated files
+    """
     
     # Open Config
-    with open('conf/o365.json') as fp:
-        json_config = json.load(fp)
     with open('conf/site.json') as fp:
         json_siteconfig = json.load(fp)
 
     # Loop round all site locations and get data
-    o365action = app_menu(config=json_config)
+    o365actionmenu = app_menu()
     for json_site in json_siteconfig["locations"]:
         time.sleep(1)
         if json_site is None:
@@ -58,12 +62,17 @@ def fnSaveO365Menu():
                 newItem.ingredients = str(json_newmenuitem['ingredients'])
                 newItem.rowindex = json_newmenuitem['rid']
 
-                # Update Excel
-                actionOutput = o365action.putNewItem(siteconfig=json_site['menu'], menuitem=newItem)
+                # Update Remote Excel
+                actionOutput = o365actionmenu.PutNewItem(sitemenuconfig=json_site['menu'], menuitem=newItem)
 
-                # Post Announce
+                # Remote Update all good
                 if actionOutput:
-                    o365action.notifyNewItem(siteconfig=json_site['menu'], menuitem=newItem)
+                    # Update Local file
+                    o365actionmenu.SaveNewItem(siteid=json_site["id"], sitemenuconfig=json_site['menu'], menuitem=newItem, author=str(json_newmenuitem['modifiedby']))
+
+                    # Post Announce
+                    o365actionmenu.NotifyNewItem(sitemenuconfig=json_site['menu'], menuitem=newItem)
+
                     # Remove file if done
                     os.remove(newfilename)
 
@@ -73,10 +82,10 @@ def fnSaveO365Menu():
 # Main program
 # fnGetO365Menu()
             
-# 1 Check any to process
+# 1 Check any to process (all sites)
 # 2 read new entry
 # 3 update excel
-# 4 post to teams chat
+# 4 update local
+# 5 post to teams chat
 
 fnSaveO365Menu()
-
