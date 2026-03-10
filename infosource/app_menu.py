@@ -8,7 +8,7 @@
 from O365 import Account
 from O365.utils import FileSystemTokenBackend
 from O365.excel import WorkBook
-from util.helper_coding import helper_coding as helpcrypto
+from util.o365conf import conf_o365
 import os
 import json
 import time
@@ -19,69 +19,73 @@ import base64
 class app_menu():
     """ Application Lib: Menu, will connect to O365 and obtain the Dinner Menu from Excel """
 
-    datapath = 'data/menu/'
+    __o365conf = None
     _tokenpath = 'data/'
     _tokenfilename = 'o365_token.json'
+    datapath = 'data/menu/'
+    """ Menu Data subpath """
 
-
-    def __init__(self, config=None):
+    def __init__(self):
         """
         Dinner Menu grabber
-        
-        :param config: O365 Configuration object
-        :type config: dictionary
+
         """
-        self._json_config = config
 
-        #Set Config Defaults
-        if self._json_config is None:
-            self._json_config = {}
-        if not 'plaintext' in self._json_config:
-            self._json_config['plaintext'] = False
+        # Build O365 Config
+        self.__o365conf = conf_o365()
+        pass
 
 
-    def process(self, siteconfig=None):
+    def __DoO365Auth(self):
+        """
+        Do O365 Authentication and return account object
+
+        :return: O365 Account Object
+        :rtype: O365.Account
+        """
+        try:
+            o365_tokenbackend = FileSystemTokenBackend(token_path=self._tokenpath, token_filename=self._tokenfilename)
+            o365_credentials = (self.__o365conf.GetClientID(), self.__o365conf.GetSecret())
+            o365_account = Account(o365_credentials, auth_flow_type='credentials', tenant_id=self.__o365conf.GetTenantID(), token_backend=o365_tokenbackend)
+
+            # will check if there is a token and has not expired
+            if not o365_account.is_authenticated:
+                o365_account.authenticate()
+
+            # Return Access Object
+            return o365_account
+        except Exception as ex:
+            print("ERROR:app_menu.__DoO365Auth()", ex)
+            return None
+
+
+    def Process(self, sitemenuconfig=None):
         """
         Will Get the Menu data and format read for saving.
-        
-        :param siteconfig: Site Config Data
-        :type siteconfig: dictionary
+
+        :param sitemenuconfig: Site Menu Config Data
+        :type sitemenuconfig: dictionary
         :return: Returns the full menu
         :rtype: dictionary
         """
         # Check have config and enabled
-        if siteconfig['refresh'] != 0:
+        if sitemenuconfig['refresh'] != 0:
 
             try:
                 # Connect to O365 (O365 Account Logon)
-                o365_tokenbackend = FileSystemTokenBackend(token_path=self._tokenpath, token_filename=self._tokenfilename)
-                if self._json_config['plaintext'] == False:
-                    o365_credentials = (helpcrypto().decode(self._json_config['client_id']), helpcrypto().decode(self._json_config['client_secret']))
-                    o365_account = Account(o365_credentials, auth_flow_type='credentials', tenant_id=helpcrypto().decode(self._json_config['tenant_id']), token_backend=o365_tokenbackend)
-                else:
-                    o365_credentials = (self._json_config['client_id'], self._json_config['client_secret'])
-                    o365_account = Account(o365_credentials, auth_flow_type='credentials', tenant_id=self._json_config['tenant_id'], token_backend=o365_tokenbackend)
-
-                # will check if there is a token and has not expired
-                if not o365_account.is_authenticated:  
-                    o365_account.authenticate()
-
-                if o365_account.is_authenticated:
+                o365_account = self.__DoO365Auth()
+                if o365_account is not None and o365_account.is_authenticated:
                     returndata = {'dt': int(time.time())}
 
                     # Connect to Storage Drive, and get file
-                    if self._json_config['plaintext'] == False:
-                        o365_storagedrive = o365_account.storage().get_drive(helpcrypto().decode(siteconfig['driveid']))
-                        o365_storagedrivefile = o365_storagedrive.get_item(helpcrypto().decode(siteconfig['itemid']))
-                    else:
-                        o365_storagedrive = o365_account.storage().get_drive(siteconfig['driveid'])
-                        o365_storagedrivefile = o365_storagedrive.get_item(siteconfig['itemid'])
+                    o365_storagedrive = o365_account.storage().get_drive(sitemenuconfig['driveid'])
+                    o365_storagedrivefile = o365_storagedrive.get_item(sitemenuconfig['itemid'])
                     returndata['modified'] = o365_storagedrivefile.modified.strftime("%a %d %b, %H:%M")
                     returndata['modifiedby'] = str(o365_storagedrivefile.modified_by)
 
                     # Open Excel File, and worksheet
                     o365_excelfile = WorkBook(o365_storagedrivefile, persist=False)
-                    o365_excelfilews = o365_excelfile.get_worksheet(siteconfig['sheetname'])
+                    o365_excelfilews = o365_excelfile.get_worksheet(sitemenuconfig['sheetname'])
 
                     # Loop Thou rows, till end
                     o365_timethismorning = (dt.now().date() - date(year=1900, month=1, day=1)).days + 2
@@ -108,7 +112,7 @@ class app_menu():
 
                         if datarow_start >= 400:
                             #Catchment incase :)
-                            print("ERROR:app_menu.process() Max Rows")
+                            print("ERROR:app_menu.Process() Max Rows")
                             dataend = True
                         datarow_start += 30
                     return returndata
@@ -124,7 +128,7 @@ class app_menu():
 
             except Exception as ex:
                     errormessage = DinnerMenuItem('Today', 'Process Error', 'O365', ex)
-                    print("ERROR:app_menu.process()", ex)
+                    print("ERROR:app_menu.Process()", ex)
                     return {
                         'dt': int(time.time()),
                         'modified': '',
@@ -141,48 +145,34 @@ class app_menu():
                     }
 
 
-    def getEditOptions(self, siteconfig=None):
+    def GetEditOptions(self, sitemenuconfig=None):
         """
         Will Get the Menu Options and Chefs
-        
-        :param siteconfig: Site Config Data
-        :type siteconfig: dictionary
+
+        :param sitemenuconfig: Site Menu Config Data
+        :type sitemenuconfig: dictionary
         :return: Returns the 2 lists
         :rtype: dictionary
         """
         # Check have config and enabled
-        if siteconfig['refresh'] != 0 and siteconfig['allowedit']:
+        if sitemenuconfig['refresh'] != 0 and 'allowedit' in sitemenuconfig and sitemenuconfig['allowedit']:
             try:
                 # Connect to O365 (O365 Account Logon)
-                o365_tokenbackend = FileSystemTokenBackend(token_path=self._tokenpath, token_filename=self._tokenfilename)
-                if self._json_config['plaintext'] == False:
-                    o365_credentials = (helpcrypto().decode(self._json_config['client_id']), helpcrypto().decode(self._json_config['client_secret']))
-                    o365_account = Account(o365_credentials, auth_flow_type='credentials', tenant_id=helpcrypto().decode(self._json_config['tenant_id']), token_backend=o365_tokenbackend)
-                else:
-                    o365_credentials = (self._json_config['client_id'], self._json_config['client_secret'])
-                    o365_account = Account(o365_credentials, auth_flow_type='credentials', tenant_id=self._json_config['tenant_id'], token_backend=o365_tokenbackend)
-
-                if not o365_account.is_authenticated:  # will check if there is a token and has not expired
-                    o365_account.authenticate()
-
-                if o365_account.is_authenticated:
+                o365_account = self.__DoO365Auth()
+                if o365_account is not None and o365_account.is_authenticated:
                     returndata = {'dt': int(time.time())}
                     returndata['option'] = []
                     returndata['chef'] = []
 
                     # Connect to Storage Drive, and get file
-                    if self._json_config['plaintext'] == False:
-                        o365_storagedrive = o365_account.storage().get_drive(helpcrypto().decode(siteconfig['driveid']))
-                        o365_storagedrivefile = o365_storagedrive.get_item(helpcrypto().decode(siteconfig['itemid']))
-                    else:
-                        o365_storagedrive = o365_account.storage().get_drive(siteconfig['driveid'])
-                        o365_storagedrivefile = o365_storagedrive.get_item(siteconfig['itemid'])
+                    o365_storagedrive = o365_account.storage().get_drive(sitemenuconfig['driveid'])
+                    o365_storagedrivefile = o365_storagedrive.get_item(sitemenuconfig['itemid'])
 
                     # Open Excel File, and worksheet
                     o365_excelfile = WorkBook(o365_storagedrivefile, persist=False)
 
                     # Loop Thou menu option rows, till end
-                    o365_excelfilews = o365_excelfile.get_worksheet(siteconfig['optionsheetname'])
+                    o365_excelfilews = o365_excelfile.get_worksheet(sitemenuconfig['optionsheetname'])
                     dataend = False
                     datarow_start = 1
                     while not dataend:
@@ -200,14 +190,14 @@ class app_menu():
                             datarow_index += 1
 
                         if datarow_start >= 200:
-                            #Catchment incase :)
-                            print("app_menu.getEditOptions() Max Rows Error")
+                            # Catchment incase :)
+                            print("app_menu.GetEditOptions() Max Rows Error")
                             dataend = True
                         datarow_start += 10
 
                     # Mass grab chef options rows, then loop thou
                     time.sleep(1)
-                    o365_excelfilews = o365_excelfile.get_worksheet(siteconfig['chefsheetname'])
+                    o365_excelfilews = o365_excelfile.get_worksheet(sitemenuconfig['chefsheetname'])
                     time.sleep(0.5)
                     datasheet = o365_excelfilews.get_range('A1:A10')
                     dataend = False
@@ -219,8 +209,8 @@ class app_menu():
                         else:
                             returndata['chef'].append(datasheet.text[datarow_index][0])
                         if datarow_index >= 10:
-                            #Catchment incase :)
-                            print("app_menu.getEditOptions() Max Rows Error")
+                            # Catchment incase :)
+                            print("app_menu.GetEditOptions() Max Rows Error")
                             dataend = True
                         datarow_index += 1
 
@@ -236,7 +226,7 @@ class app_menu():
 
             except Exception as ex:
                     errormessage = DinnerMenuItem('Today', 'Process Options Error', 'O365', ex)
-                    print("app_menu.getEditOptions() Process Options Error", ex)
+                    print("app_menu.GetEditOptions() Process Options Error", ex)
                     return {
                         'dt': int(time.time()),
                         'option': [],
@@ -251,7 +241,7 @@ class app_menu():
                     }
 
 
-    def getRecipeOptions(self, siteid=0, menudata=None):
+    def GetRecipeOptions(self, siteid=0, menudata=None):
         """
         Get Recipe data from OneNote.
         Fires off php script to get data
@@ -269,10 +259,11 @@ class app_menu():
                     os.system('php -f alternate/eDataMenuRecipe.php ' + siteid + ' ' + str(menudataitem['rid']) + ' ' + base64_string)
 
 
-    def savedata(self, filename, jsondata):
+    def SaveData(self, filename, jsondata):
         """
         Save json Infomation into specified file.
-        
+        Can be used for Menu or Option data
+
         :param filename: menu or options with site id
         :type filename: string
         :param jsondata: Json Information
@@ -284,52 +275,37 @@ class app_menu():
                 json.dump(jsondata, fp)
 
         except Exception as ex:
-            print('ERROR:app_menu.savedata('+filename+')', ex)
+            print('ERROR:app_menu.SaveData('+filename+')', ex)
 
 
-    def putNewItem(self, siteconfig=None, menuitem=None):
+    def PutNewItem(self, sitemenuconfig=None, menuitem=None):
         """
-        Will Put a new Menu item into excel
+        Will Put a new Menu item into excel online
 
-        :param siteconfig: Site Config Data
-        :type siteconfig: dictionary
+        :param sitemenuconfig: Site Menu Config Data
+        :type sitemenuconfig: dictionary
         :param menuitem: Menu Item Data
         :type menuitem: DinnerMenuItem
         :return: true if good
         :rtype: bool
         """
         # Check have config and enabled
-        if siteconfig != None and menuitem != None and siteconfig['refresh'] != 0:
+        if sitemenuconfig != None and menuitem != None and 'allowedit' in sitemenuconfig and sitemenuconfig['allowedit'] == True:
             try:
-
                 # Connect to O365 (O365 Account Logon)
-                o365_tokenbackend = FileSystemTokenBackend(token_path=self._tokenpath, token_filename=self._tokenfilename)
-                if self._json_config['plaintext'] == False:
-                    o365_credentials = (helpcrypto().decode(self._json_config['client_id']), helpcrypto().decode(self._json_config['client_secret']))
-                    o365_account = Account(o365_credentials, auth_flow_type='credentials', tenant_id=helpcrypto().decode(self._json_config['tenant_id']), token_backend=o365_tokenbackend)
-                else:
-                    o365_credentials = (self._json_config['client_id'], self._json_config['client_secret'])
-                    o365_account = Account(o365_credentials, auth_flow_type='credentials', tenant_id=self._json_config['tenant_id'], token_backend=o365_tokenbackend)
-
-                if not o365_account.is_authenticated:  # will check if there is a token and has not expired
-                    o365_account.authenticate()
-
-                if o365_account.is_authenticated:
+                o365_account = self.__DoO365Auth()
+                if o365_account is not None and o365_account.is_authenticated:
                     returndata = {'dt': int(time.time())}
 
                     # Connect to Storage Drive, and get file
-                    if self._json_config['plaintext'] == False:
-                        o365_storagedrive = o365_account.storage().get_drive(helpcrypto().decode(siteconfig['driveid']))
-                        o365_storagedrivefile = o365_storagedrive.get_item(helpcrypto().decode(siteconfig['itemid']))
-                    else:
-                        o365_storagedrive = o365_account.storage().get_drive(siteconfig['driveid'])
-                        o365_storagedrivefile = o365_storagedrive.get_item(siteconfig['itemid'])
+                    o365_storagedrive = o365_account.storage().get_drive(sitemenuconfig['driveid'])
+                    o365_storagedrivefile = o365_storagedrive.get_item(sitemenuconfig['itemid'])
                     returndata['modified'] = o365_storagedrivefile.modified.strftime("%a %d %b, %H:%M")
                     returndata['modifiedby'] = str(o365_storagedrivefile.modified_by)
 
                     # Open Excel File, and worksheet
                     o365_excelfile = WorkBook(o365_storagedrivefile, persist=True)
-                    o365_excelfilews = o365_excelfile.get_worksheet(siteconfig['sheetname'])
+                    o365_excelfilews = o365_excelfile.get_worksheet(sitemenuconfig['sheetname'])
 
                     # Save changes
                     datacella = o365_excelfilews.get_range('A' + str(menuitem.rowindex))
@@ -351,33 +327,33 @@ class app_menu():
                 else:
                     # Return not a lot as not authenticated
                     errormessage = DinnerMenuItem('Today', 'User authentication failure', 'O365-MENU')
-                    print (errormessage.getobj())
+                    print("ERROR:app_menu.PutNewItem()", errormessage.getobj())
                     return False
 
             except Exception as ex:
                     errormessage = DinnerMenuItem('Today', 'putNewItem Error', 'O365-MENU', ex)
-                    print (errormessage.getobj())
+                    print("ERROR:app_menu.PutNewItem()", errormessage.getobj())
                     return False
         else:
             # Return not a lot as not enabled
             return False
 
 
-    def notifyNewItem(self, siteconfig=None, menuitem=None):
+    def NotifyNewItem(self, sitemenuconfig=None, menuitem=None):
         """
         Notify Teams of menu Change
 
-        :param siteconfig: Site Config Data
-        :type siteconfig: dictionary
+        :param sitemenuconfig: Site Menu Config Data
+        :type sitemenuconfig: dictionary
         :param menuitem: Menu Item Data
         :type menuitem: DinnerMenuItem
         :return: true if good
         :rtype: bool
         """
         # Check have config and enabled
-        if siteconfig != None and menuitem != None and siteconfig['refresh'] != 0 and 'teams-webhookurl' in siteconfig:
+        if sitemenuconfig != None and menuitem != None and 'teams-webhookurl' in sitemenuconfig and sitemenuconfig['teams-webhookurl'] != '':
             try:
-                posturl = siteconfig['teams-webhookurl']
+                posturl = sitemenuconfig['teams-webhookurl']
                 postheaders = {'Content-Type': 'application/json'}
 
                 content = "<div>" +\
@@ -388,16 +364,61 @@ class app_menu():
                 postpayload = { "text": content}
 
                 teamresponse = requests.post(posturl, headers=postheaders, data=json.dumps(postpayload))
-                # print(teamresponse.text.encode('utf8'))
                 return True
 
             except Exception as ex:
                     errormessage = DinnerMenuItem('Today', 'notifyNewItem Error', 'O365-MENU', ex)
-                    print (errormessage.getobj())
+                    print("ERROR:app_menu.NotifyNewItem()", errormessage.getobj())
                     return False
         else:
             # Return not a lot as not enabled
+            print("WARN:app_menu.NotifyNewItem() not enabled")
             return False
+
+
+    def SaveNewItem(self, siteid=0, sitemenuconfig=None, menuitem=None, author=None):
+        """
+        Will Put a new Menu item into local data
+
+        :param sitemenuconfig: Site Menu Config Data
+        :type sitemenuconfig: dictionary
+        :param menuitem: Menu Item Data
+        :type menuitem: DinnerMenuItem
+        :param author: Author of change
+        :type author: string
+        :return: true if good
+        :rtype: bool
+        """
+        # Check have config and enabled
+        if siteid != 0 and sitemenuconfig != None and menuitem != None and 'allowedit' in sitemenuconfig and sitemenuconfig['allowedit'] == True:
+            menuDataFile = self.datapath+'menu_'+str(siteid)+'.json'
+            try:
+                if os.path.isfile(menuDataFile):
+                    # Load existing menu data
+                    with open(menuDataFile) as fp:
+                        json_menudata = json.load(fp)
+
+                    # Update menu item in local file
+                    rowupdated = False
+                    for menudataitem in json_menudata['menu']:
+                        if (menudataitem['rid'] == menuitem.rowindex):
+                            menudataitem['meal'] = menuitem.dinneroption
+                            menudataitem['chef'] = menuitem.chef
+                            menudataitem['ingredients'] = menuitem.ingredients
+                            rowupdated = True
+
+                    # update modified and save
+                    if rowupdated:
+                        json_menudata["modified"] = dt.now().strftime("%a %d %b, %H:%M")
+                        json_menudata["modifiedby"] = author
+
+                        # Save file
+                        with open(menuDataFile, 'w') as fp:
+                            json.dump(json_menudata, fp)
+                    return rowupdated
+            except Exception as ex:
+                print("ERROR:app_menu.SaveNewItem()", ex)
+        return False
 
 
 
@@ -417,7 +438,7 @@ class DinnerMenuItem():
         return '{}: {} by {} [{}]'.format(self.datetext, self.dinneroption, self.chef, self.ingredients)
 
     def readrow(self, excelrow):
-        """ 
+        """
         Read single row from excel range
 
         :param excelrow: Excel Row Range
@@ -433,7 +454,7 @@ class DinnerMenuItem():
 
 
     def readrows(self, excelrow, rownum):
-        """ 
+        """
         Read specific row from multi-row excel range
 
         :param excelrow: Excel Row Range

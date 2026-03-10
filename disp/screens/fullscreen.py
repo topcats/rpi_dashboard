@@ -120,14 +120,14 @@ class FullScreen:
             weathercurrent = weatherfunc.GetCurrent()
 
             # Show Current Weather
-            LcarsText(self.__maincanvas, colours.VIOLET, (10, 190), str(weathercurrent["time"]), size=1.2)
-            LcarsText(self.__maincanvas, colours.BLUE, (10, 230), str(weathercurrent["temperature"])+ " c", size=1.2)
-            LcarsText(self.__maincanvas, colours.BLUE, (10, 265), str(weathercurrent["description"]), size=1.2)
+            LcarsText(self.__maincanvas, colours.VIOLET, (10, 150), str(weathercurrent["time"]), size=1.2)
+            LcarsText(self.__maincanvas, colours.BLUE, (10, 190), str(weathercurrent["temperature"])+ " c", size=1.2)
+            LcarsText(self.__maincanvas, colours.BLUE, (10, 225), str(weathercurrent["description"]) + "\n" + str(weathercurrent["wind"]), size=1.2)
             if os.path.isfile ("data/weather/icon_"+str(weathercurrent["icon"])+".png"):
                 self.__weatherimgsrc = Image.open("data/weather/icon_"+str(weathercurrent["icon"])+".png")
                 self.__weatherimgsrc = self.__weatherimgsrc.resize((150,150))
                 self.__weatherimgphoto = ImageTk.PhotoImage(self.__weatherimgsrc)
-                self.__weathernowimage = self.__maincanvas.create_image(140, 210, image=self.__weatherimgphoto)
+                self.__weathernowimage = self.__maincanvas.create_image(140, 170, image=self.__weatherimgphoto)
                 self.__maincanvas.image = self.__weatherimgphoto
         except Exception as ex:
             print("ERROR:eDisplay.FullScreen.__showHome(Weather)", ex)
@@ -183,48 +183,48 @@ class FullScreen:
             LcarsText(self.__maincanvas, colours.VIOLET, (0, 0), "Weather (" + str(weathercurrent["location"]) + ")", size=2)
 
             # Show Current
-            LcarsText(self.__maincanvas, colours.BLUE, (10, 70), str(weathercurrent["description"])+" : : "+ str(weathercurrent["temperature"]) + " c", size=1.8)
-            LcarsText(self.__maincanvas, colours.BLUE, (10, 130), "Sun rise : " + str(weathercurrent["sunlight"]), size=1.2)
-            LcarsText(self.__maincanvas, colours.VIOLET, (520, 130), str(weathercurrent["time"]), size=1.2, anchor=tk.CENTER)
+            LcarsText(self.__maincanvas, colours.BLUE, (10, 60), str(weathercurrent["description"])+" : : "+ str(weathercurrent["temperature"]) + " c", size=1.8)
+            LcarsText(self.__maincanvas, colours.BLUE, (10, 120), "Sun rise : " + str(weathercurrent["sunlight"]), size=1.2)
+            LcarsText(self.__maincanvas, colours.VIOLET, (520, 120), str(weathercurrent["time"]), size=1.2, anchor=tk.CENTER)
             if os.path.isfile ("data/weather/icon_"+str(weathercurrent["icon"])+".png"):
                 self.__weatherimgsrc = Image.open("data/weather/icon_"+str(weathercurrent["icon"])+".png")
                 self.__weatherimgsrc = self.__weatherimgsrc.resize((180,180))
                 self.__weatherimgphoto = ImageTk.PhotoImage(self.__weatherimgsrc)
-                self.__weathernowimage = self.__maincanvas.create_image(536, 60, image=self.__weatherimgphoto)
+                self.__weathernowimage = self.__maincanvas.create_image(536, 50, image=self.__weatherimgphoto)
                 self.__maincanvas.image = self.__weatherimgphoto
 
             # Show Forecast
             if os.path.isfile ("data/weather/icon_"+str(weatherforecast[0]["icon"])+".png"):
-                LcarsText(self.__maincanvas, colours.VIOLET, (10, 180), str(weatherforecast[0]["time"]), size=1, anchor=tk.E, width=5)
-                LcarsText(self.__maincanvas, colours.BLUE, (10, 215), str(weatherforecast[0]["temperature"])+" c", size=1, anchor=tk.E, width=5)
-                LcarsText(self.__maincanvas, colours.BLUE, (10, 250), str(weatherforecast[0]["description"]), size=1, anchor=tk.W)
+                LcarsText(self.__maincanvas, colours.VIOLET, (10, 170), str(weatherforecast[0]["time"]), size=1, anchor=tk.E, width=5)
+                LcarsText(self.__maincanvas, colours.BLUE, (10, 205), str(weatherforecast[0]["temperature"])+" c", size=1, anchor=tk.E, width=5)
+                LcarsText(self.__maincanvas, colours.BLUE, (10, 240), str(weatherforecast[0]["description"])+"\n"+str(weatherforecast[0]["wind"]), size=1, anchor=tk.W)
                 self.__weatherimgsrcf1 = Image.open("data/weather/icon_"+str(weatherforecast[0]["icon"])+".png")
                 self.__weatherimgphotof1 = ImageTk.PhotoImage(self.__weatherimgsrcf1)
-                self.__weatherfore1image = self.__maincanvas.create_image(105, 220, image=self.__weatherimgphotof1)
+                self.__weatherfore1image = self.__maincanvas.create_image(105, 200, image=self.__weatherimgphotof1)
                 self.__maincanvas.image = self.__weatherimgphotof1
             if os.path.isfile ("data/weather/icon_"+str(weatherforecast[1]["icon"])+".png"):
-                LcarsText(self.__maincanvas, colours.VIOLET, (165, 180), str(weatherforecast[1]["time"]), size=1, anchor=tk.E, width=5)
-                LcarsText(self.__maincanvas, colours.BLUE, (165, 215), str(weatherforecast[1]["temperature"])+" c", size=1, anchor=tk.E, width=5)
-                LcarsText(self.__maincanvas, colours.BLUE, (165, 250), str(weatherforecast[1]["description"]), size=1, anchor=tk.W)
+                LcarsText(self.__maincanvas, colours.VIOLET, (165, 170), str(weatherforecast[1]["time"]), size=1, anchor=tk.E, width=5)
+                LcarsText(self.__maincanvas, colours.BLUE, (165, 205), str(weatherforecast[1]["temperature"])+" c", size=1, anchor=tk.E, width=5)
+                LcarsText(self.__maincanvas, colours.BLUE, (165, 240), str(weatherforecast[1]["description"])+"\n"+str(weatherforecast[1]["wind"]), size=1, anchor=tk.W)
                 self.__weatherimgsrcf2 = Image.open("data/weather/icon_"+str(weatherforecast[1]["icon"])+".png")
                 self.__weatherimgphotof2 = ImageTk.PhotoImage(self.__weatherimgsrcf2)
-                self.__weatherfore2image = self.__maincanvas.create_image(260, 220, image=self.__weatherimgphotof2)
+                self.__weatherfore2image = self.__maincanvas.create_image(260, 200, image=self.__weatherimgphotof2)
                 self.__maincanvas.image = self.__weatherimgphotof2
             if os.path.isfile ("data/weather/icon_"+str(weatherforecast[2]["icon"])+".png"):
-                LcarsText(self.__maincanvas, colours.VIOLET, (320, 180), str(weatherforecast[2]["time"]), size=1, anchor=tk.E, width=5)
-                LcarsText(self.__maincanvas, colours.BLUE, (320, 215), str(weatherforecast[2]["temperature"])+" c", size=1, anchor=tk.E, width=5)
-                LcarsText(self.__maincanvas, colours.BLUE, (320, 250), str(weatherforecast[2]["description"]), size=1, anchor=tk.W)
+                LcarsText(self.__maincanvas, colours.VIOLET, (320, 170), str(weatherforecast[2]["time"]), size=1, anchor=tk.E, width=5)
+                LcarsText(self.__maincanvas, colours.BLUE, (320, 205), str(weatherforecast[2]["temperature"])+" c", size=1, anchor=tk.E, width=5)
+                LcarsText(self.__maincanvas, colours.BLUE, (320, 240), str(weatherforecast[2]["description"])+"\n"+str(weatherforecast[2]["wind"]), size=1, anchor=tk.W)
                 self.__weatherimgsrcf3 = Image.open("data/weather/icon_"+str(weatherforecast[2]["icon"])+".png")
                 self.__weatherimgphotof3 = ImageTk.PhotoImage(self.__weatherimgsrcf3)
-                self.__weatherfore3image = self.__maincanvas.create_image(415, 220, image=self.__weatherimgphotof3)
+                self.__weatherfore3image = self.__maincanvas.create_image(415, 200, image=self.__weatherimgphotof3)
                 self.__maincanvas.image = self.__weatherimgphotof3
             if os.path.isfile ("data/weather/icon_"+str(weatherforecast[3]["icon"])+".png"):
-                LcarsText(self.__maincanvas, colours.VIOLET, (470, 180), str(weatherforecast[3]["time"]), size=1, anchor=tk.E, width=5)
-                LcarsText(self.__maincanvas, colours.BLUE, (470, 215), str(weatherforecast[3]["temperature"])+" c", size=1, anchor=tk.E, width=5)
-                LcarsText(self.__maincanvas, colours.BLUE, (475, 250), str(weatherforecast[3]["description"]), size=1, anchor=tk.W)
+                LcarsText(self.__maincanvas, colours.VIOLET, (470, 170), str(weatherforecast[3]["time"]), size=1, anchor=tk.E, width=5)
+                LcarsText(self.__maincanvas, colours.BLUE, (470, 205), str(weatherforecast[3]["temperature"])+" c", size=1, anchor=tk.E, width=5)
+                LcarsText(self.__maincanvas, colours.BLUE, (475, 240), str(weatherforecast[3]["description"])+"\n"+str(weatherforecast[3]["wind"]), size=1, anchor=tk.W)
                 self.__weatherimgsrcf4 = Image.open("data/weather/icon_"+str(weatherforecast[3]["icon"])+".png")
                 self.__weatherimgphotof4 = ImageTk.PhotoImage(self.__weatherimgsrcf4)
-                self.__weatherfore4image = self.__maincanvas.create_image(570, 220, image=self.__weatherimgphotof4)
+                self.__weatherfore4image = self.__maincanvas.create_image(570, 200, image=self.__weatherimgphotof4)
                 self.__maincanvas.image = self.__weatherimgphotof4
 
         except Exception as ex:

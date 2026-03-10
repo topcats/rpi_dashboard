@@ -66,7 +66,11 @@ def processSchedule():
         # Clear existing widgets
         root.unbind('<Escape>')
         for widget in root.winfo_children():
-            widget.destroy()
+            try:
+                widget.destroy()
+            except:
+                pass
+            
         # Apply Style Change Here
         curstyle = style
         if style == 0:

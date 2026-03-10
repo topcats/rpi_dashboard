@@ -122,25 +122,26 @@ class disp_zwavefuncs:
 
             # Get Updated Devices List
             self.__getDevices()
-            for zDeviceItem in self.__deviceList:
-                if (zDeviceItem['id'] in self.__displaydevices):
-                    if (zDeviceItem['deviceType'] == 'toggleButton'):
-                        zwavecmdtb = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='green', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'on' : self.action(p1, p2))
-                        zwavecmdtb.pack()
-                    elif (zDeviceItem['deviceType'] == 'switchBinary'):
-                        if (zDeviceItem['metrics']['level'] == 'on'):
-                            zwavecmdsb = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='red', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'off' : self.action(p1, p2))
-                            zwavecmdsb.pack()
-                        else:
-                            zwavecmd = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='green', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'on' : self.action(p1, p2))
-                            zwavecmd.pack()
-                    elif (zDeviceItem['deviceType'] == 'switchMultilevel'):
-                        if (int(zDeviceItem['metrics']['level']) == 0):
-                            zwavecmd = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='green', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'on' : self.action(p1, p2))
-                            zwavecmd.pack()
-                        else:
-                            zwavecmd = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='red', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'off' : self.action(p1, p2))
-                            zwavecmd.pack()
+            for displayDevice in self.__displaydevices:
+                for zDeviceItem in self.__deviceList:
+                    if (zDeviceItem['id'] == displayDevice):
+                        if (zDeviceItem['deviceType'] == 'toggleButton'):
+                            zwavecmdtb = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='green', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'on' : self.action(p1, p2))
+                            zwavecmdtb.pack()
+                        elif (zDeviceItem['deviceType'] == 'switchBinary'):
+                            if (zDeviceItem['metrics']['level'] == 'on'):
+                                zwavecmdsb = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='red', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'off' : self.action(p1, p2))
+                                zwavecmdsb.pack()
+                            else:
+                                zwavecmd = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='green', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'on' : self.action(p1, p2))
+                                zwavecmd.pack()
+                        elif (zDeviceItem['deviceType'] == 'switchMultilevel'):
+                            if (int(zDeviceItem['metrics']['level']) == 0):
+                                zwavecmd = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='green', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'on' : self.action(p1, p2))
+                                zwavecmd.pack()
+                            else:
+                                zwavecmd = tk.Button(self.__zwavecanvas, text=zDeviceItem['metrics']["title"], fg='red', bg=buttonbg, width=30, padx=1, pady=4, relief='flat', command=lambda p1 = zDeviceItem['id'], p2 = 'off' : self.action(p1, p2))
+                                zwavecmd.pack()
             cx = (self.__root.winfo_width() - (self.__zwavecanvas.winfo_reqwidth() + 34))
             cy = (self.__root.winfo_height() - (self.__zwavecanvas.winfo_reqheight() + 6))
             self.__zwavecanvas.place(x=cx, y=cy)
@@ -221,21 +222,17 @@ class disp_zwavefuncs:
         :rtype: list
         """
 
-        # Parse display config for rooms to show
-        displayRooms = []
-        for item in display:
-            displayRooms.append(item['room'])
-
         # Update Room Data
         self.__getLocation()
 
         # Limit room list to rooms in display config
         oRooms = []
-        for oZRoom in self.__roomList:
-            if (oZRoom['id'] in displayRooms):
-                if (oZRoom['id'] == 0):
-                    oZRoom['title'] = 'House'
-                oRooms.append(oZRoom)
+        for displayitem in display:
+            for oZRoom in self.__roomList:
+                if (oZRoom['id'] == displayitem['room']):
+                    if (oZRoom['id'] == 0):
+                        oZRoom['title'] = 'House'
+                    oRooms.append(oZRoom)
 
         return oRooms
     
@@ -319,8 +316,9 @@ class disp_zwavefuncs:
 
         # Limit device list to devices in the room
         oDevices = []
-        for zDeviceItem in self.__deviceList:
-            if (zDeviceItem['id'] in displayRoom["devices"]):
-                oDevices.append(zDeviceItem)
+        for roomDevice in displayRoom["devices"]:
+            for zDeviceItem in self.__deviceList:
+                if (zDeviceItem['id'] == roomDevice):
+                    oDevices.append(zDeviceItem)
 
         return oDevices

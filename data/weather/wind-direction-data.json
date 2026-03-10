@@ -1,0 +1,52 @@
+{
+    "en": {
+        "North": {
+            "deg_interval": [-11.25, 11.25]
+        },
+        "North-northeast": {
+            "deg_interval": [11.25, 33.75]
+        },
+        "NorthEast": {
+            "deg_interval": [33.75, 56.25]
+        },
+        "East-northeast": {
+            "deg_interval": [56.25, 78.75]
+        },
+        "East": {
+            "deg_interval": [78.75, 101.25]
+        },
+        "East-southeast": {
+            "deg_interval": [101.25, 123.75]
+        },
+        "SouthEast": {
+            "deg_interval": [123.75, 146.25]
+        },
+        "South-southeast": {
+            "deg_interval": [146.25, 168.75]
+        },
+        "South": {
+            "deg_interval": [168.75, 191.25]
+        },
+        "South-southwest": {
+            "deg_interval": [191.25, 213.75]
+        },
+        "Southwest": {
+            "deg_interval": [213.75, 236.25]
+        },
+        "West-southwest": {
+            "deg_interval": [236.25, 258.75]
+        },
+        "West": {
+            "deg_interval": [258.75, 281.25]
+        },
+        "West-northwest": {
+            "deg_interval": [281.25, 303.75]
+        },
+        "Northwest": {
+            "deg_interval": [303.75, 326.25]
+        },
+        "North-northwest": {
+            "deg_interval": [326.25, 348.75]
+        }
+    }
+}
