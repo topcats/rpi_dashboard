@@ -45,7 +45,7 @@ class app_menu():
         """
         try:
             o365_tokenbackend = FileSystemTokenBackend(token_path=self._tokenpath, token_filename=self._tokenfilename)
-            o365_credentials = (self.__o365conf.GetClientID(), self.__o365conf.GetSecret())
+            o365_credentials = (self.__o365conf.GetClientID(), self.__o365conf.GetClientSecret())
             o365_account = Account(o365_credentials, auth_flow_type='credentials', tenant_id=self.__o365conf.GetTenantID(), token_backend=o365_tokenbackend)
 
             # will check if there is a token and has not expired
