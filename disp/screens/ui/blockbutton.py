@@ -56,6 +56,10 @@ class LcarsButton():
                                 pady=0,
                                 padx=2,
                                 highlightthickness=0,
+                                highlightbackground=self.colour,
+                                highlightcolor=colours.BLACK,
+                                activebackground=self.colour,
+                                activeforeground=colours.BLACK,
                                 borderwidth=0,
                                 command=self.handler
                             )

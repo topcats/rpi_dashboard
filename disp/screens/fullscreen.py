@@ -20,12 +20,15 @@ from disp.zwavefuncs import disp_zwavefuncs
 
 class FullScreen:
 
+    root = None
+    DISP_CONFIG = None
+    cmdCloseNow = None
+    zfuncs = None
     bgcanvas = None
     __maincanvas = None
     __maincanvasafterid = None
     __subcanvas = None
     __subcanvasafterid = None
-    zfuncs = None
     __bgcanvasimgsrc = None
     __bgcanvasimgphoto = None
     __bgcanvasimage = None
@@ -169,8 +172,8 @@ class FullScreen:
         # Clear and setup canvas
         self.__clearMainCanvas()
 
-        # Timeout after 45 seconds
-        self.__maincanvas.after(45000, self.__showHome)
+        # Timeout after 3 minutes
+        self.__maincanvasafterid = self.__maincanvas.after(180000, self.__showHome)
 
         try:
             # Get Weather Data
@@ -258,9 +261,9 @@ class FullScreen:
             self.__clearSubCanvas()
             if room == 0:
                 return
-            if self.__subcanvasafterid is not None:
-                self.__subcanvas.after_cancel(self.__subcanvasafterid)
-            self.__maincanvas.after(120000, self.__showHome)
+            if self.__maincanvasafterid is not None:
+                self.__maincanvas.after_cancel(self.__maincanvasafterid)
+            self.__maincanvasafterid = self.__maincanvas.after(120000, self.__showHome)
 
             LocationName = self.zfuncs.getRoomName(room)
             roomButtons = self.zfuncs.getRoomDevices(self.DISP_CONFIG["zwave"]["full"], room)
@@ -287,20 +290,20 @@ class FullScreen:
                 buttonTopSub += 50
 
         def putAction(roomid, deviceid, deviceaction):
-            if self.__subcanvasafterid is not None:
-                self.__subcanvas.after_cancel(self.__subcanvasafterid)
-            self.__maincanvas.after(120000, self.__showHome)
+            if self.__maincanvasafterid is not None:
+                self.__maincanvas.after_cancel(self.__maincanvasafterid)
+            self.__maincanvasafterid = self.__maincanvas.after(120000, self.__showHome)
             self.zfuncs.action(deviceid, deviceaction)
             if self.__subcanvasafterid is not None:
                 self.__subcanvas.after_cancel(self.__subcanvasafterid)
-            self.__subcanvas.after(1000, drawsub, roomid)
+            self.__subcanvasafterid = self.__subcanvas.after(1500, drawsub, roomid)
 
         # Clear and setup canvas
         self.__clearMainCanvas()
         self.__clearSubCanvas()
 
         # Timeout after 120 seconds
-        self.__maincanvas.after(120000, self.__showHome)
+        self.__maincanvasafterid = self.__maincanvas.after(120000, self.__showHome)
 
         # Display Z Menu Sub Buttons
         if (self.DISP_CONFIG["zwave"]["enabled"]):
