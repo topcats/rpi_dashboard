@@ -401,7 +401,7 @@ class app_menu():
                     # Update menu item in local file
                     rowupdated = False
                     for menudataitem in json_menudata['menu']:
-                        if (menudataitem['rid'] == menuitem.rowindex):
+                        if (int(menudataitem['rid']) == int(menuitem.rowindex)):
                             menudataitem['meal'] = menuitem.dinneroption
                             menudataitem['chef'] = menuitem.chef
                             menudataitem['ingredients'] = menuitem.ingredients
@@ -415,9 +415,16 @@ class app_menu():
                         # Save file
                         with open(menuDataFile, 'w') as fp:
                             json.dump(json_menudata, fp)
+                    else:
+                        print("ERROR:app_menu.SaveNewItem() Menu Item not found in data", menuitem.rowindex, menuDataFile)
                     return rowupdated
+                else:
+                    print("ERROR:app_menu.SaveNewItem() Menu Data file not found", menuDataFile)
+                    return False
             except Exception as ex:
                 print("ERROR:app_menu.SaveNewItem()", ex)
+        else:
+            print("WARN:app_menu.SaveNewItem() not enabled")
         return False
 
 

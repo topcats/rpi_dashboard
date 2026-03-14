@@ -75,7 +75,12 @@ def fnSaveO365Menu():
 
                     # Remove file if done
                     os.remove(newfilename)
-
+                else:
+                    print("Error updating menu item to Excel for site "+json_site["id"])
+            else:
+                print("Error reading new menu item file for site "+json_site["id"])
+        else:
+            print("Skipped: No new menu item file for site "+json_site["id"])
 
 
 #######################################
