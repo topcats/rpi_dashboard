@@ -54,6 +54,7 @@ if ($siteid == null || $updatedata == null) {
 // 1. Load Config
 $jsonsite = json_decode(file_get_contents(file_siteconfig), true);
 LoadConfig();
+date_default_timezone_set('UTC');
 
 
 // 2. Check Token
