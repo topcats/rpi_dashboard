@@ -91,6 +91,10 @@ ENV/
 # Random Windows Stuff
 Thumbs.db
 
+# IDE User Settings
+.vscode/
+.vs/
+
 # Project Specific
 data_*.txt
 icon_*.png

@@ -12,9 +12,9 @@ import os
 
 class app_weather():
     """ Application Lib:Weather, will connect to OpenWeatherMap and obtain the Current and Forecast data """
-    
+
     datapath = 'data/weather/'
-    
+
     _baseurl= 'http://api.openweathermap.org/data/2.5/'
 
     def __init__(self, config=None):
@@ -124,7 +124,7 @@ class app_weather():
         """
 
         try:
-            with open(self.datapath + str(filename) + '.json', 'w') as fp:
+            with open(self.datapath + str(filename) + '.json', 'w', encoding='utf-8') as fp:
                 json.dump(jsondata, fp)
 
         except Exception as ex:

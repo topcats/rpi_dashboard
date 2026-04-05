@@ -50,3 +50,18 @@ sudo python3 -m pip install pi_heif
 * Run `setup.py` to create config file
 * Read [Backlight Setup manual](BacklightControlNotes.md)
 * Read [Auto run manual](AutorunNotes.md)
+
+### Data Setup
+
+```bash
+mkdir data
+cd data
+mkdir calendar
+mkdir menu
+mkdir photo
+mkdir weather
+mkdir web
+chmod -R a+w calendar
+chmod -R a+w menu
+chmod -R a+w web
+```

@@ -42,7 +42,7 @@ class WebCalItem():
             dateUTC = dt.strptime(timevalue[:15],"%Y%m%dT%H%M%S")
             dateUTC.replace(tzinfo=zoneUTC)
             dateLOCAL = dateUTC.astimezone(zoneLON)
-            return float(dateLOCAL.replace(tzinfo=zoneUTC).timestamp())
+            return int(dateLOCAL.replace(tzinfo=zoneUTC).timestamp())
         else:
             return None
 
@@ -51,8 +51,8 @@ class WebCalItem():
         self.Id = str(eventitem["UID"])
         #self.Subject = str(eventitem["SUMMARY"])
         self.Location = str(eventitem["LOCATION"])
-        self.Start = float(time.mktime(eventitem.start.astimezone(timezone.utc).timetuple()))
-        self.End = float(time.mktime(eventitem.end.astimezone(timezone.utc).timetuple()))
+        self.Start = int(eventitem.start.astimezone(timezone.utc).timestamp())
+        self.End = int(eventitem.end.astimezone(timezone.utc).timestamp())
         self.Created = self.__readCreatedTime(eventitem["DTSTAMP"].to_ical())
         self.Body = {
                 "contentType": "Text",

@@ -362,7 +362,7 @@ class app_photo():
         """
 
         try:
-            with open(self.datapath + str(filename) + '.json', 'w') as fp:
+            with open(self.datapath + str(filename) + '.json', 'w', encoding='utf-8') as fp:
                 json.dump(jsondata, fp)
 
         except Exception as ex:

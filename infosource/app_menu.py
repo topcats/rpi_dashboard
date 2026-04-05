@@ -271,7 +271,7 @@ class app_menu():
         """
 
         try:
-            with open(self.datapath + str(filename) + '.json', 'w') as fp:
+            with open(self.datapath + str(filename) + '.json', 'w', encoding='utf-8') as fp:
                 json.dump(jsondata, fp)
 
         except Exception as ex:
@@ -395,13 +395,13 @@ class app_menu():
             try:
                 if os.path.isfile(menuDataFile):
                     # Load existing menu data
-                    with open(menuDataFile) as fp:
+                    with open(menuDataFile, encoding='utf-8') as fp:
                         json_menudata = json.load(fp)
 
                     # Update menu item in local file
                     rowupdated = False
                     for menudataitem in json_menudata['menu']:
-                        if (menudataitem['rid'] == menuitem.rowindex):
+                        if (int(menudataitem['rid']) == int(menuitem.rowindex)):
                             menudataitem['meal'] = menuitem.dinneroption
                             menudataitem['chef'] = menuitem.chef
                             menudataitem['ingredients'] = menuitem.ingredients
@@ -413,11 +413,17 @@ class app_menu():
                         json_menudata["modifiedby"] = author
 
                         # Save file
-                        with open(menuDataFile, 'w') as fp:
+                        with open(menuDataFile, 'w', encoding='utf-8') as fp:
                             json.dump(json_menudata, fp)
-                    return rowupdated
+                        return True
+                    else:
+                        print("ERROR:app_menu.SaveNewItem() Menu Item not found in data", menuitem.rowindex, menuDataFile)
+                else:
+                    print("ERROR:app_menu.SaveNewItem() Menu Data file not found", menuDataFile)
             except Exception as ex:
                 print("ERROR:app_menu.SaveNewItem()", ex)
+        else:
+            print("WARN:app_menu.SaveNewItem() not enabled")
         return False
 
 

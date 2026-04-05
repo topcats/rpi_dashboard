@@ -399,15 +399,18 @@ function LoadSiteData($siteid)
 }
 
 
+
 function get_TimefromEpoch($in)
 {
     if (is_numeric($in)) {
-        $dt = new DateTime("@$in");
+        $dt = new DateTime("@$in", new DateTimeZone('UTC'));
     } else {
-        $dt = new DateTime($in);
+        $dt = new DateTime($in, new DateTimeZone('UTC'));
     }
     return $dt;
 }
+
+
 
 function format_TimefromEpoch($in)
 {

@@ -61,7 +61,7 @@ class app_tide():
         """
 
         try:
-            with open(self.datapath + str(portid) + '.json', 'w') as fp:
+            with open(self.datapath + str(portid) + '.json', 'w', encoding='utf-8') as fp:
                 json.dump(jsondata, fp)
 
         except Exception as ex:

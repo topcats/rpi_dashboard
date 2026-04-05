@@ -409,7 +409,7 @@ class app_calendar():
         """
 
         try:
-            with open(self.datapath + str(filename) + '.json', 'w') as fp:
+            with open(self.datapath + str(filename) + '.json', 'w', encoding='utf-8') as fp:
                 json.dump(jsondata, fp)
 
         except Exception as ex:
@@ -426,7 +426,7 @@ class app_calendar():
         json_obj = {}
         try:
             if os.path.isfile(self.datapath + str(filename) + '.json'):
-                with open(self.datapath + str(filename) + '.json') as fp:
+                with open(self.datapath + str(filename) + '.json', encoding='utf-8') as fp:
                     json_obj = json.load(fp)
             else: 
                 print("file not found", filename)

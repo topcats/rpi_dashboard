@@ -22,7 +22,7 @@ configfile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__fil
 
 print (configfile)
 
-with open(configfile) as fp:
+with open(configfile, encoding='utf-8') as fp:
     json_siteconfig = json.load(fp)
 
 o365action = app_menu()
