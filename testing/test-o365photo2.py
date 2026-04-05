@@ -17,9 +17,9 @@ os.chdir('/home/pi/dashdisplay')
 
 from infosource.app_photo import app_photo
 
-with open('conf/o365.json') as fp:
+with open('conf/o365.json', encoding='utf-8') as fp:
     json_config = json.load(fp)
-with open('conf/site.json') as fp:
+with open('conf/site.json', encoding='utf-8') as fp:
     json_siteconfig = json.load(fp)
 
 o365action = app_photo(config=json_config)

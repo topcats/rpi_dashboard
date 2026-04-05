@@ -27,7 +27,7 @@ def fnGetLastUpdated(datafile, refreshdefault):
     data_timediff = int(refreshdefault)*61
     try:
         if os.path.isfile(datafile+'.json'):
-            with open(datafile+'.json') as fp:
+            with open(datafile+'.json', encoding='utf-8') as fp:
                 json_obj = json.load(fp)
             data_timediff = int(time.time()) - int(json_obj['dt'])
     except Exception as ex:
@@ -43,7 +43,7 @@ def fnGetWeather():
     from infosource.app_weather import app_weather
 
     # Open Config
-    with open('conf/weather.json') as fp:
+    with open('conf/weather.json', encoding='utf-8') as fp:
         json_config = json.load(fp)
 
     if int(json_config['refresh']) == 0:
@@ -101,7 +101,7 @@ def fnGetTide():
     from infosource.app_tide import app_tide
 
     # Open Config
-    with open('conf/tide.json') as fp:
+    with open('conf/tide.json', encoding='utf-8') as fp:
         json_config = json.load(fp)
 
     if int(json_config['refresh']) == 0:
@@ -136,12 +136,12 @@ def fnGetDlna():
     _data_fileold = 'data/dlna_stats.old.json'
 
     # Open Config
-    with open('conf/dlna.json') as fp:
+    with open('conf/dlna.json', encoding='utf-8') as fp:
         json_config = json.load(fp)
 
     # Load Existing
     try:
-        with open(_data_file) as fp:
+        with open(_data_file, encoding='utf-8') as fp:
             json_data = json.load(fp)
         data_timediff = int(time.time()) - int(json_data['updated'])
     except:
@@ -166,7 +166,7 @@ def fnGetDlna():
         if int(json_data['audio']) != int(dataresponse['audio']) or int(json_data['video']) != int(dataresponse['video']) or int(json_data['photo']) != int(dataresponse['photo']):
             if os.path.isfile(_data_file):
                 shutil.copyfile(_data_file, _data_fileold)
-            with open(_data_file, 'w') as outs:
+            with open(_data_file, 'w', encoding='utf-8') as outs:
                 json.dump(dataresponse, outs)
         else:
             print("fnGetDlna(): No Change")
@@ -181,14 +181,14 @@ def fnGetO365Calendar():
     from infosource.app_calendar import app_calendar
 
     # Open Config
-    with open('conf/o365.json') as fp:
+    with open('conf/o365.json', encoding='utf-8') as fp:
         json_config = json.load(fp)
 
     data_timediff = fnGetLastUpdated('data/o365_calendar.json', json_config['schedule']['refresh'])
     if data_timediff >= int(json_config['schedule']['refresh']):
         # Get Data
         o365action = app_calendar(config=json_config)
-        with open('data/o365_calendar.json', 'w') as outs:
+        with open('data/o365_calendar.json', 'w', encoding='utf-8') as outs:
             json.dump(o365action.process('schedule'), outs)
     else:
         print("fnGetO365Calendar(): Not needed")
@@ -197,7 +197,7 @@ def fnGetO365Calendar():
 def fnGet0365CalendarHP():
     """
     Get Office365 Calendar information
-    
+
     NB: Uses PHP!!
     """
 
@@ -211,9 +211,9 @@ def fnGetO365InfoPane():
     from infosource.app_calendar import app_calendar
 
     # Open Config
-    with open('conf/o365.json') as fp:
+    with open('conf/o365.json', encoding='utf-8') as fp:
         json_config = json.load(fp)
-    with open('conf/site.json') as fp:
+    with open('conf/site.json', encoding='utf-8') as fp:
         json_siteconfig = json.load(fp)
 
     # Loop round all site locations and get data
@@ -260,7 +260,7 @@ def fnGetO365Menu():
     from infosource.app_menu import app_menu
 
     # Open Config
-    with open('conf/site.json') as fp:
+    with open('conf/site.json', encoding='utf-8') as fp:
         json_siteconfig = json.load(fp)
 
     # Loop round all site locations and get data
@@ -298,9 +298,9 @@ def fnGetO365Task():
     from infosource.app_tasks import app_tasks
 
     # Open Config
-    with open('conf/o365.json') as fp:
+    with open('conf/o365.json', encoding='utf-8') as fp:
         json_config = json.load(fp)
-    with open('conf/site.json') as fp:
+    with open('conf/site.json', encoding='utf-8') as fp:
         json_siteconfig = json.load(fp)
 
     # Loop round all site locations and get data
@@ -324,10 +324,10 @@ def fnGetO365Task():
             # Get Data
             if json_site['tasks']['manual']:
                 try:
-                    with open('data/o365_tasks_'+json_site["id"]+'s.json') as fp:
+                    with open('data/o365_tasks_'+json_site["id"]+'s.json', encoding='utf-8') as fp:
                         json_sourcedata = json.load(fp)
                     json_output = o365action.processmanual(siteconfig=json_site['tasks'], sourcedata=json_sourcedata['value'])
-                    with open('data/o365_tasks_'+json_site["id"]+'.json', 'w') as outs:
+                    with open('data/o365_tasks_'+json_site["id"]+'.json', 'w', encoding='utf-8') as outs:
                         json.dump(json_output, outs)
                 except Exception as ex:
                     print('Tasks Source file issue. '+json_site["id"], ex)
@@ -345,9 +345,9 @@ def fnGetO365Photo():
     from infosource.app_photo import app_photo
 
     # Open Config
-    with open('conf/o365.json') as fp:
+    with open('conf/o365.json', encoding='utf-8') as fp:
         json_config = json.load(fp)
-    with open('conf/site.json') as fp:
+    with open('conf/site.json', encoding='utf-8') as fp:
         json_siteconfig = json.load(fp)
 
     o365action = app_photo(config=json_config)

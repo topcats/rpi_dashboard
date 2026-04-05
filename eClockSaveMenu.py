@@ -28,9 +28,9 @@ def fnSaveO365Menu():
 
     Cycles round all locations and looks for updated files
     """
-    
+
     # Open Config
-    with open('conf/site.json') as fp:
+    with open('conf/site.json', encoding='utf-8') as fp:
         json_siteconfig = json.load(fp)
 
     # Loop round all site locations and get data
@@ -52,7 +52,7 @@ def fnSaveO365Menu():
         # Check new
         newfilename = 'data/web/o365_dinnermenu_new_'+json_site["id"]+'.json'
         if os.path.isfile(newfilename):
-            with open(newfilename) as fp:
+            with open(newfilename, encoding='utf-8') as fp:
                 json_newmenuitem = json.load(fp)
 
             if json_newmenuitem is not None:
@@ -86,7 +86,7 @@ def fnSaveO365Menu():
 #######################################
 # Main program
 # fnGetO365Menu()
-            
+
 # 1 Check any to process (all sites)
 # 2 read new entry
 # 3 update excel

@@ -26,7 +26,7 @@ class disp_conf:
         :rtype: dict
         """
         try:
-            with open(self.__configfile, 'r') as fp:
+            with open(self.__configfile, 'r', encoding='utf-8') as fp:
                 config = json.load(fp)
             return config
         except Exception as ex:
@@ -42,7 +42,7 @@ class disp_conf:
         :type config: dict
         """
         try:
-            with open(self.__configfile, 'w') as f:
+            with open(self.__configfile, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=4)
         except Exception as ex:
             print("ERROR:eDisplay.disp_conf.saveConfig()", ex)

@@ -95,7 +95,7 @@ class disp_calendarfuncs:
                 currenttimestamptill = int((currentdatetime.replace(hour=23, minute=59, second=0, microsecond=0)).timestamp())
 
             currentFile = os.path.normpath(os.path.join(self.datapath, 'infopane_'+str(self.locationid)+'.json'))
-            with open(currentFile) as fp:
+            with open(currentFile, encoding='utf-8') as fp:
                 json_obj = json.load(fp)
 
             for o365_event in json_obj['events']:

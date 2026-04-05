@@ -27,11 +27,11 @@ class conf_o365():
         """
         Load O365 Configuration from JSON file
 
-        Will load into local var, or set default if an error 
+        Will load into local var, or set default if an error
         """
         if self.__config is None:
             try:
-                with open(self.__configfile, 'r') as fp:
+                with open(self.__configfile, 'r', encoding='utf-8') as fp:
                     self.__config = json.load(fp)
             except Exception as ex:
                 print("ERROR:eDisplay.conf_o365.loadConfig()", ex)
@@ -39,9 +39,9 @@ class conf_o365():
 
 
     def GetTenantID(self):
-        """ 
+        """
         Return O365 Tenant ID
-        
+
         :return: Tenant ID
         :rtype: string
         """
@@ -50,9 +50,9 @@ class conf_o365():
 
 
     def GetClientID(self):
-        """ 
+        """
         Return O365 Client ID
-        
+
         :return: Client ID
         :rtype: string
         """

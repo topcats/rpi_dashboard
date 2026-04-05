@@ -47,7 +47,7 @@ class disp_weatherfuncs:
 
         try:
             dataFile = os.path.normpath(os.path.join(self.__datapath, 'wind-speed-data.json'))
-            with open(dataFile) as fp:
+            with open(dataFile, encoding='utf-8') as fp:
                 json_obj = json.load(fp)
             return self.__getParentSelectorFromObjecta(json_obj['en'], float(value), "speed_interval")
         except Exception as ex:
@@ -65,7 +65,7 @@ class disp_weatherfuncs:
         try:
             currentFile = os.path.normpath(os.path.join(self.__datapath, 'current_'+str(self.townid)+'.json'))
             current_wind = ""
-            with open(currentFile) as fp:
+            with open(currentFile, encoding='utf-8') as fp:
                 json_obj = json.load(fp)
 
             current_desc = (json_obj['weather'][0]['description']).title()
@@ -104,7 +104,7 @@ class disp_weatherfuncs:
         # Get Forecast Weather Data
         try:
             forecastFile = os.path.normpath(os.path.join(self.__datapath, 'forecast_'+str(self.townid)+'.json'))
-            with open(forecastFile) as fp:
+            with open(forecastFile, encoding='utf-8') as fp:
                 json_obj = json.load(fp)
 
             weatherdata = []

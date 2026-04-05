@@ -271,7 +271,7 @@ class app_menu():
         """
 
         try:
-            with open(self.datapath + str(filename) + '.json', 'w') as fp:
+            with open(self.datapath + str(filename) + '.json', 'w', encoding='utf-8') as fp:
                 json.dump(jsondata, fp)
 
         except Exception as ex:
@@ -395,7 +395,7 @@ class app_menu():
             try:
                 if os.path.isfile(menuDataFile):
                     # Load existing menu data
-                    with open(menuDataFile) as fp:
+                    with open(menuDataFile, encoding='utf-8') as fp:
                         json_menudata = json.load(fp)
 
                     # Update menu item in local file
@@ -413,7 +413,7 @@ class app_menu():
                         json_menudata["modifiedby"] = author
 
                         # Save file
-                        with open(menuDataFile, 'w') as fp:
+                        with open(menuDataFile, 'w', encoding='utf-8') as fp:
                             json.dump(json_menudata, fp)
                         return True
                     else:
