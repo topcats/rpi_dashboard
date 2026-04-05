@@ -415,12 +415,11 @@ class app_menu():
                         # Save file
                         with open(menuDataFile, 'w') as fp:
                             json.dump(json_menudata, fp)
+                        return True
                     else:
                         print("ERROR:app_menu.SaveNewItem() Menu Item not found in data", menuitem.rowindex, menuDataFile)
-                    return rowupdated
                 else:
                     print("ERROR:app_menu.SaveNewItem() Menu Data file not found", menuDataFile)
-                    return False
             except Exception as ex:
                 print("ERROR:app_menu.SaveNewItem()", ex)
         else:
