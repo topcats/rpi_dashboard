@@ -78,8 +78,6 @@ def fnGetWeather():
 
                 # - Current Icon
                 iconpath = weatheraction.downloadicon(json_obj['weather'][0]['icon'])
-                if weatherlocation['townid'] == 2650311 and iconpath is not None and os.path.isfile(iconpath):
-                    shutil.copyfile(iconpath, app_weather.datapath + 'icon_weather.png')
 
                 # - Forecast
                 json_obj = weatheraction.getforecast(weatherlocation['townid'])
@@ -88,8 +86,6 @@ def fnGetWeather():
                 # - Get Active Weather Icons
                 for i in range(0, 20):
                     iconpath = weatheraction.downloadicon(json_obj['list'][i]['weather'][0]['icon'])
-                    if weatherlocation['townid'] == 2650311 and iconpath is not None and os.path.isfile(iconpath) and i < 5:
-                        shutil.copyfile(iconpath, app_weather.datapath + 'icon_forecast' + str(i+1) + '.png')
 
             else:
                 print("fnGetWeather("+str(weatherlocation['townid'])+") Info: Not needed")
