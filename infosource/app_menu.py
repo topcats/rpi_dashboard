@@ -440,8 +440,16 @@ class DinnerMenuItem():
         self.today = bool(today)
         self.rowindex = 0
 
+
     def __str__(self):
+        """
+        String output of the menu item: DateText, Dinner Option by Chef [Ingredients]
+        
+        :return: String representation of the menu item
+        :rtype: string
+        """
         return '{}: {} by {} [{}]'.format(self.datetext, self.dinneroption, self.chef, self.ingredients)
+
 
     def readrow(self, excelrow):
         """
@@ -478,6 +486,12 @@ class DinnerMenuItem():
 
 
     def getobj(self):
+        """
+        Get Menu Item as Object ready for JSON
+
+        :return: Menu Item as Object
+        :rtype: dictionary
+        """
         # self.dinneroption = self.__formatHtml(self.dinneroption)
         self.chef = self.__formatHtml(self.chef)
         # self.ingredients = self.__formatHtml(self.ingredients)

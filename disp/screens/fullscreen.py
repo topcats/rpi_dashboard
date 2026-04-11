@@ -14,6 +14,7 @@ from disp.screens.ui.blockbutton import *
 from disp.screens.ui.blockitem import *
 from disp.screens.ui import colours
 from disp.calendarfuncs import *
+from disp.menufuncs import *
 from disp.weatherfuncs import disp_weatherfuncs
 from disp.zwavefuncs import disp_zwavefuncs
 
@@ -56,6 +57,11 @@ class FullScreen:
         self.root = tkroot
         self.DISP_CONFIG = disp_config
         self.cmdCloseNow = closefunc
+
+        # setup paths
+        self.__datapathweat = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/weather"))
+        self.__datapathcal = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/calendar"))
+        self.__datapathmenu = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/menu"))
 
 
     def showDisplay(self):
@@ -116,10 +122,10 @@ class FullScreen:
         # Refresh every 5 minutes
         self.__maincanvasafterid = self.__maincanvas.after(300000, self.__showHome)
 
+        #Front Page Weather
         try:
             # Get Weather Data
-            datapathweat = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/weather"))
-            weatherfunc = disp_weatherfuncs(datapathweat, self.DISP_CONFIG["weather"])
+            weatherfunc = disp_weatherfuncs(self.__datapathweat, self.DISP_CONFIG["weather"])
             weathercurrent = weatherfunc.GetCurrent()
 
             # Show Current Weather
@@ -136,32 +142,37 @@ class FullScreen:
             print("ERROR:eDisplay.FullScreen.__showHome(Weather)", ex)
 
         # Front Page Calendar
+        calendarTop = 40
         try:
             LcarsText(self.__maincanvas, colours.VIOLET, (300, 0), "HOUSE CALENDAR TODAY", size=1, anchor=tk.NW)
             # Get Calendar for Today
-            datapathcal = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/calendar"))
-            calendarfuncs = disp_calendarfuncs(datapathcal, self.DISP_CONFIG["location"])
+            calendarfuncs = disp_calendarfuncs(self.__datapathcal, self.DISP_CONFIG["location"])
             currentEvents = calendarfuncs.getToday()
 
-            calendarTop = 40
             for o365_event in currentEvents:
-                calendarColour = colours.BLUE
-                if (o365_event.IsAllDay):
-                    calendarText = "    \t" + o365_event.Subject
-                else:
-                    calendarText = o365_event.StartTime().strftime("%H:%M") + "\t" + o365_event.Subject
-                if ("Steph" in o365_event.Categories):
-                    calendarColour = colours.MAUVE
-                elif ("Tristan" in o365_event.Categories):
-                    calendarColour = colours.ORANGE
-                elif ("Robbie" in o365_event.Categories):
-                    calendarColour = colours.BLUEGREY
-                elif ("House" in o365_event.Categories):
-                    calendarColour = colours.PEACH
-                LcarsText(self.__maincanvas, calendarColour, (240, calendarTop), str(calendarText), size=1.2, anchor=tk.NW)
+                calendarColour = o365_event.GetColour()
+                calendarText = o365_event.GetText()
+                LcarsText(self.__maincanvas, calendarColour, (180, calendarTop), str(calendarText), size=1.2, anchor=tk.NW)
                 calendarTop += 38
         except Exception as ex:
             print("ERROR:eDisplay.FullScreen.__showHome(Calendar)", ex)
+
+        # Front Page Menu
+        try:
+            # Get Menu Data for Today if before 8pm else tomorrow
+            currentdatetime = datetime.now()
+
+            menufuncs = disp_menufuncs(self.__datapathmenu, self.DISP_CONFIG["location"])
+            if currentdatetime.hour < 20:  # Before 8pm
+                currentMenu = menufuncs.getToday()
+            else:  # After 8pm, show tomorrow's menu
+                currentMenu = menufuncs.getTomorrow()
+
+            if currentMenu is not None and len(currentMenu) > 0:
+                LcarsText(self.__maincanvas, colours.BLUE, (180, calendarTop), str(currentMenu[0].GetText()), size=1.2, anchor=tk.NW)
+
+        except Exception as ex:
+            print("ERROR:eDisplay.FullScreen.__showHome(Menu)", ex)
 
 
     def __showWeather(self):
@@ -177,8 +188,7 @@ class FullScreen:
 
         try:
             # Get Weather Data
-            datapath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/weather"))
-            weatherfunc = disp_weatherfuncs(datapath, self.DISP_CONFIG["weather"])
+            weatherfunc = disp_weatherfuncs(self.__datapathweat, self.DISP_CONFIG["weather"])
             weathercurrent = weatherfunc.GetCurrent()
             weatherforecast = weatherfunc.GetForecast()
 

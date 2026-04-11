@@ -7,10 +7,14 @@
 import json
 import os
 from datetime import datetime, timedelta
+from disp.screens.ui import colours
+
 
 
 class CalerdarItem():
-
+    """ 
+    Calendar Item
+    """
     # Public Vars
     Subject = None
     Location = None
@@ -48,11 +52,57 @@ class CalerdarItem():
 
 
     def StartTime(self):
+        """
+        Return Start Time as Datetime
+
+        :return: Start Time
+        :rtype: datetime
+        """
         return datetime.fromtimestamp(self.Start)
 
 
     def EndTime(self):
+        """
+        Return End Time as Datetime
+
+        :return: End Time
+        :rtype: datetime
+        """
         return datetime.fromtimestamp(self.End)
+
+
+    def GetText(self):
+        """
+        Return Text for Calendar Item
+
+        :return: Start Time HH:MM and Subject
+        :rtype: string
+        """
+        if (self.IsAllDay):
+            return "    \t" + self.Subject
+        elif (self.StartTime().hour >= 10 and self.StartTime().hour < 20):
+            return "          " + self.StartTime().strftime("%H:%M") + "\t" + self.Subject
+        else:
+            return "        " + self.StartTime().strftime("%H:%M") + "\t" + self.Subject
+
+
+    def GetColour(self):
+        """
+        Return Colour for Calendar Item
+
+        :return: Colour based on Categories
+        :rtype: string
+        """
+        if ("Steph" in self.Categories):
+            return colours.MAUVE
+        elif ("Tristan" in self.Categories):
+            return colours.ORANGE
+        elif ("Robbie" in self.Categories):
+            return colours.BLUEGREY
+        elif ("House" in self.Categories):
+            return colours.PEACH
+        else:
+            return colours.BLUE
 
 
 
@@ -87,8 +137,8 @@ class disp_calendarfuncs:
         try:
             # Time Now
             currentdatetime = datetime.now()
-            currenttimestampfromday = int((currentdatetime.replace(hour=0, minute=0, second=0, microsecond=0)).timestamp())
             currenttimestampfrom = int((currentdatetime - timedelta(hours=1)).timestamp())
+            # if time after 1800, show tomorrow as well, otherwise just show today
             if (int(currentdatetime.strftime('%H')) > 18):
                 currenttimestamptill = int((currentdatetime + timedelta(hours=22)).timestamp())
             else:
