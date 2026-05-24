@@ -137,7 +137,7 @@ class DayScreen:
             weatherforecast = weatherfunc.GetForecast()
 
             # update weather text
-            self.__weathercanvas.itemconfig(self.__weatherlabel, text='Weather (' + str(weathercurrent['location']) + ') : '+"\n"+ str(weathercurrent['description'])+" : : "+ str(weathercurrent['temperature']) + " c")
+            self.__weathercanvas.itemconfig(self.__weatherlabel, text="\tWeather (" + str(weathercurrent['location']) + ") : \n\t" + str(weathercurrent['description']) + " : " + str(weathercurrent['wind']) + " : " + str(weathercurrent['temperature']) + " c")
             self.__weathercanvas.itemconfig(self.__weathersuntimes, text=str(weathercurrent['sunlight']))
             self.__weathercanvas.itemconfig(self.__weathernowtime, text=str(weathercurrent['time']))
 
