@@ -152,7 +152,8 @@ class FullScreen:
             for o365_event in currentEvents:
                 calendarColour = o365_event.GetColour()
                 calendarText = o365_event.GetText()
-                LcarsText(self.__maincanvas, calendarColour, (180, calendarTop), str(calendarText), size=1.2, anchor=tk.NW)
+                LcarsText(self.__maincanvas, calendarColour, (200, calendarTop), str(calendarText[0]), size=1.2, anchor=tk.NE)
+                LcarsText(self.__maincanvas, calendarColour, (260, calendarTop), str(calendarText[1]), size=1.2, anchor=tk.NW)
                 calendarTop += 38
         except Exception as ex:
             print("ERROR:eDisplay.FullScreen.__showHome(Calendar)", ex)
@@ -169,7 +170,7 @@ class FullScreen:
                 currentMenu = menufuncs.getTomorrow()
 
             if currentMenu is not None and len(currentMenu) > 0:
-                LcarsText(self.__maincanvas, colours.BLUE, (180, calendarTop), str(currentMenu[0].GetText()), size=1.2, anchor=tk.NW)
+                LcarsText(self.__maincanvas, colours.BLUE, (210, calendarTop), str(currentMenu[0].GetText()), size=1.2, anchor=tk.NW)
 
         except Exception as ex:
             print("ERROR:eDisplay.FullScreen.__showHome(Menu)", ex)

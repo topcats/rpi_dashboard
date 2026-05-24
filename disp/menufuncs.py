@@ -42,7 +42,7 @@ class MenuItem(DinnerMenuItem):
         :return: option and chef
         :rtype: string
         """
-        return "            🍽\t" + self.dinneroption + " by " + self.chef
+        return "🍽   " + self.dinneroption + " by " + self.chef
 
 
 

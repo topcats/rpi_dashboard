@@ -79,11 +79,9 @@ class CalerdarItem():
         :rtype: string
         """
         if (self.IsAllDay):
-            return "    \t" + self.Subject
-        elif (self.StartTime().hour >= 10 and self.StartTime().hour < 20):
-            return "          " + self.StartTime().strftime("%H:%M") + "\t" + self.Subject
+            return ("", self.Subject)
         else:
-            return "        " + self.StartTime().strftime("%H:%M") + "\t" + self.Subject
+            return (self.StartTime().strftime("%H:%M"), self.Subject)
 
 
     def GetColour(self):
