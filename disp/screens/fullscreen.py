@@ -197,7 +197,7 @@ class FullScreen:
             LcarsText(self.__maincanvas, colours.VIOLET, (0, 0), "Weather (" + str(weathercurrent["location"]) + ")", size=2)
 
             # Show Current
-            LcarsText(self.__maincanvas, colours.BLUE, (10, 60), str(weathercurrent["description"])+" : : "+ str(weathercurrent["temperature"]) + " c", size=1.8)
+            LcarsText(self.__maincanvas, colours.BLUE, (00, 60), str(weathercurrent["description"]) + " : " + str(weathercurrent["wind"]) + " : " + str(weathercurrent["temperature"]) + " c", size=1.5)
             LcarsText(self.__maincanvas, colours.BLUE, (10, 120), "Sun rise : " + str(weathercurrent["sunlight"]), size=1.2)
             LcarsText(self.__maincanvas, colours.VIOLET, (520, 120), str(weathercurrent["time"]), size=1.2, anchor=tk.CENTER)
             if os.path.isfile ("data/weather/icon_"+str(weathercurrent["icon"])+".png"):
