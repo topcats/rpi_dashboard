@@ -361,15 +361,15 @@ class app_menu():
                             "<b>Option:</b> " + menuitem.dinneroption + "<br/>" +\
                             "<b>Chef:</b> " + menuitem.chef + "<br/>" +\
                             "<b>Ingredients:</b> " + menuitem.ingredients + "</div>"
-                postpayload = { "text": content}
+                postpayload = { "type":"message", "text": content }
 
                 teamresponse = requests.post(posturl, headers=postheaders, data=json.dumps(postpayload))
                 return True
 
             except Exception as ex:
-                    errormessage = DinnerMenuItem('Today', 'notifyNewItem Error', 'O365-MENU', ex)
-                    print("ERROR:app_menu.NotifyNewItem()", errormessage.getobj())
-                    return False
+                errormessage = DinnerMenuItem('Today', 'notifyNewItem Error', 'O365-MENU', ex)
+                print("ERROR:app_menu.NotifyNewItem()", errormessage.getobj())
+                return False
         else:
             # Return not a lot as not enabled
             print("WARN:app_menu.NotifyNewItem() not enabled")
@@ -444,7 +444,7 @@ class DinnerMenuItem():
     def __str__(self):
         """
         String output of the menu item: DateText, Dinner Option by Chef [Ingredients]
-        
+
         :return: String representation of the menu item
         :rtype: string
         """
@@ -493,7 +493,7 @@ class DinnerMenuItem():
         :rtype: dictionary
         """
         # self.dinneroption = self.__formatHtml(self.dinneroption)
-        self.chef = self.__formatHtml(self.chef)
+        # self.chef = self.__formatHtml(self.chef)
         # self.ingredients = self.__formatHtml(self.ingredients)
 
         return {
